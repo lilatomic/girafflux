@@ -3,6 +3,7 @@ package flux
 import flux.fExpr.*
 import flux.Func.*
 import flux.Helper.filterMany
+import flux.Ops
 
 val bucketName = "netdatatsdb/autogen"
 val _measurement = fToken("_measurement")
@@ -52,10 +53,10 @@ class Helpers extends munit.FunSuite {
       List(
         |>(range(Lit(fToken("-1h")))),
         |>(filterMany(List(
-          Op2(fToken("=="), Index(Lit(fToken("r")), Lit(_measurement)), Lit(fToken("cpsmetrics"))),
-          Op2(fToken("=="), Lit(fToken("host")), Lit(fToken("vpsfrsqlpac1"))),
-          Op2(fToken("=="), Index(Lit(fToken("r")), Lit(fToken("_field"))), Lit(fToken("pcpu"))),
-          Op2(fToken(">"), Index(Lit(fToken("r")), Lit(fToken("_value"))), Lit(fToken("80"))),
+          Ops.eq(Index(Lit(fToken("r")), Lit(_measurement)), Lit(fToken("cpsmetrics"))),
+          Ops.eq(Lit(fToken("host")), Lit(fToken("vpsfrsqlpac1"))),
+          Ops.eq(Index(Lit(fToken("r")), Lit(fToken("_field"))), Lit(fToken("pcpu"))),
+          Ops.gt(Index(Lit(fToken("r")), Lit(fToken("_value"))), Lit(fToken("80"))),
         ))),
         |>(sort(Lit(fToken("[\"_value\"]")), Some(Lit(fToken("true"))))),
         |>(limit(Lit(fToken("10")))),

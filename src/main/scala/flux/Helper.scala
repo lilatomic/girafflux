@@ -6,7 +6,7 @@ object Helper {
   def andMany(conds: List[fExpr]): fExpr =
     conds match
       case ::(head, Nil) => head
-      case ::(head, next) => Op2(fToken("and"), head, andMany(next))
+      case ::(head, next) => Ops.and(head, andMany(next))
       case Nil => Lit(fToken("true"))
 
 
