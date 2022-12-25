@@ -1,4 +1,4 @@
-val scala3Version = "3.1.2"
+val scala3Version = "3.2.1"
 val zioVersion = "2.0.5"
 
 lazy val root = project
