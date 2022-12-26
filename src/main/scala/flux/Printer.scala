@@ -3,7 +3,6 @@ package flux
 final class PrintingException(arg: String) extends RuntimeException
 
 object Printer {
-  //  private def mkIndent(s: String, indent: Int = 0): String = ("\t" * indent) + s
 
   private def l(l: fToken): String = l.lexeme
 
@@ -11,6 +10,27 @@ object Printer {
     l match
       case head :: Nil => head
       case _ => throw PrintingException(s"expected 1 item in list, got ${l.size}")
+
+  def prependOptionToList(a: Option[String], l: List[String]): List[String] =
+    a match
+      case Some(v) => v :: l
+      case None => l
+
+  def appendOptionToList(l: List[String], a: Option[String]): List[String] =
+    a match
+      case Some(v) => l :+ v
+      case None => l
+
+  private def coallesceSingles(s0: List[String], s1: List[String], sep: String, start: Option[String] = None, end: Option[String] = None): List[String] =
+    s0 match
+      case head0 :: Nil =>
+        s1 match
+          case head1 :: Nil => List(start.getOrElse("") + head0 + sep + head1 + end.getOrElse(""))
+          case _ => (start.getOrElse("") + head0 + sep) :: appendOptionToList(s1, end)
+      case _ =>
+        s1 match
+          case head1 :: Nil => prependOptionToList(start, s0) :+ (sep + head1 + end.getOrElse(""))
+          case _ => prependOptionToList(start, s0) ++ (sep :: appendOptionToList(s1, end))
 
   def print(expr: fExpr, indent: Int = 0): List[String] =
     expr match
@@ -24,18 +44,11 @@ object Printer {
       case fExpr.Op1(op, a0) => l(op) :: print(a0, indent)
       case fExpr.Op2(op, a0, a1) => (print(a0, indent) :+ l(op)) ++ print(a1, indent)
       case fExpr.Index(obj, value) =>
-
-
         val objStr = print(obj, indent)
-        objStr match
-          case head :: Nil =>
-            value match
-              case lit: fLit => List(head + "[" + single(printLit(lit, 0)) + "]")
-              case _ => ((head + "[") :: print(value, indent)) :+ "]"
-          case _ =>
-            value match
-              case lit: fLit => objStr :+ ("[" + single(printLit(lit, 0)) + "]")
-              case _ => (objStr :+ "[") ++ print(value, indent) :+ "]"
+        val valueStr = print(value, indent)
+        coallesceSingles(
+          objStr, valueStr, "[", end = Some("]")
+        )
       case lit: fLit => printLit(lit, indent)
 
   private def printFunction(v: fExpr.Function, indent: Int): List[String] =
