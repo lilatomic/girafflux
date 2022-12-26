@@ -24,6 +24,14 @@ class Assemble extends munit.FunSuite {
         )))
       )
     )
+    val printed = Printer.print(expr).mkString("\n")
+    assertEquals(printed,
+"""from(bucket: "netdatatsdb/autogen")
+|>
+range(
+start:
+-1h
+)""")
   }
   test("assemble - inline lambda") {
     val expr = Query(
@@ -36,12 +44,31 @@ class Assemble extends munit.FunSuite {
           Arg(
             fToken("fn"),
             Function(
-              List(fToken("r")), Op2(fToken("=="), Index(Identifier(fToken("r")), fLit.Duration(_measurement)), fLit.Duration(fToken("vpsmetrics")))
+              List(fToken("r")), Op2(fToken("=="), Index(Identifier(fToken("r")), fLit.Str(_measurement)), fLit.Str(fToken("vpsmetrics")))
             )
           )
         )))
       )
     )
+    val printed = Printer.print(expr).mkString("\n")
+    assertEquals(printed,
+"""from(bucket: "netdatatsdb/autogen")
+|>
+range(
+start:
+-1h
+)
+|>
+filter(
+fn:
+(r) =>
+r
+[
+"_measurement"
+]
+==
+"vpsmetrics"
+)""")
   }
 }
 
@@ -63,5 +90,60 @@ class Helpers extends munit.FunSuite {
         |>(Yield())
       )
     )
+    val printed = Printer.print(expr).mkString("\n")
+    assertEquals(printed,
+"""from(bucket: "netdatatsdb/autogen")
+|>
+range(
+start:
+-1h
+)
+|>
+filter(
+fn:
+(r) =>
+r
+[
+"_measurement"
+]
+==
+"cpsmetrics"
+and
+"host"
+==
+"vpsfrsqlpac1"
+and
+r
+[
+"_field"
+]
+==
+"pcpu"
+and
+r
+[
+"_value"
+]
+>
+80
+)
+|>
+sort(
+columns:
+[
+"_value"
+,
+]
+desc:
+true
+)
+|>
+limit(
+n:
+10
+)
+|>
+yield(
+)""")
   }
 }
