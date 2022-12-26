@@ -1,9 +1,16 @@
 package flux
 
+final class PrintingException(arg: String) extends RuntimeException
+
 object Printer {
   //  private def mkIndent(s: String, indent: Int = 0): String = ("\t" * indent) + s
 
   private def l(l: fToken): String = l.lexeme
+
+  private def single(l: List[String]): String =
+    l match
+      case head :: Nil => head
+      case _ => throw PrintingException(s"expected 1 item in list, got ${l.size}")
 
   def print(expr: fExpr, indent: Int = 0): List[String] =
     expr match
@@ -16,7 +23,19 @@ object Printer {
       case v: fExpr.Function => printFunction(v, indent)
       case fExpr.Op1(op, a0) => l(op) :: print(a0, indent)
       case fExpr.Op2(op, a0, a1) => (print(a0, indent) :+ l(op)) ++ print(a1, indent)
-      case fExpr.Index(obj, value) => (print(obj, indent) :+ "[") ++ print(value, indent) :+ "]"
+      case fExpr.Index(obj, value) =>
+
+
+        val objStr = print(obj, indent)
+        objStr match
+          case head :: Nil =>
+            value match
+              case lit: fLit => List(head + "[" + single(printLit(lit, 0)) + "]")
+              case _ => ((head + "[") :: print(value, indent)) :+ "]"
+          case _ =>
+            value match
+              case lit: fLit => objStr :+ ("[" + single(printLit(lit, 0)) + "]")
+              case _ => (objStr :+ "[") ++ print(value, indent) :+ "]"
       case lit: fLit => printLit(lit, indent)
 
   private def printFunction(v: fExpr.Function, indent: Int): List[String] =

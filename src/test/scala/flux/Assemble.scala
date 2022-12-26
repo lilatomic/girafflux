@@ -62,17 +62,11 @@ start:
 filter(
 fn:
 (r) =>
-r
-[
-"_measurement"
-]
+r["_measurement"]
 ==
 "vpsmetrics"
 )""")
   }
-}
-
-class Helpers extends munit.FunSuite {
 
   test("assemble - with helpers"){
     val expr = Query(
@@ -102,10 +96,7 @@ start:
 filter(
 fn:
 (r) =>
-r
-[
-"_measurement"
-]
+r["_measurement"]
 ==
 "cpsmetrics"
 and
@@ -113,17 +104,11 @@ and
 ==
 "vpsfrsqlpac1"
 and
-r
-[
-"_field"
-]
+r["_field"]
 ==
 "pcpu"
 and
-r
-[
-"_value"
-]
+r["_value"]
 >
 80
 )
