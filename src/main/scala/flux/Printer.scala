@@ -42,7 +42,7 @@ object Printer {
       case fExpr.Identifier(tok) => List(l(tok))
       case v: fExpr.Function => printFunction(v, indent)
       case fExpr.Op1(op, a0) => l(op) :: print(a0, indent)
-      case fExpr.Op2(op, a0, a1) => (print(a0, indent) :+ l(op)) ++ print(a1, indent)
+      case v: fExpr.Op2 => printOp2(v, indent)
       case fExpr.Index(obj, value) =>
         val objStr = print(obj, indent)
         val valueStr = print(value, indent)
@@ -53,6 +53,9 @@ object Printer {
 
   private def printFunction(v: fExpr.Function, indent: Int): List[String] =
     s"(${v.params.map(l).mkString(",")}) =>" :: print(v.body, indent)
+
+  private def printOp2(op: fExpr.Op2, indent: Int): List[String] =
+    coallesceSingles(print(op.a0, indent), print(op.a1, indent), s" ${l(op.op)} ")
 
   private def printLit(lit: fLit, indent: Int): List[String] =
     lit match

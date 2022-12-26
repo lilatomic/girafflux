@@ -62,9 +62,7 @@ start:
 filter(
 fn:
 (r) =>
-r["_measurement"]
-==
-"vpsmetrics"
+r["_measurement"] == "vpsmetrics"
 )""")
   }
 
@@ -96,21 +94,7 @@ start:
 filter(
 fn:
 (r) =>
-r["_measurement"]
-==
-"cpsmetrics"
-and
-"host"
-==
-"vpsfrsqlpac1"
-and
-r["_field"]
-==
-"pcpu"
-and
-r["_value"]
->
-80
+r["_measurement"] == "cpsmetrics" and "host" == "vpsfrsqlpac1" and r["_field"] == "pcpu" and r["_value"] > 80
 )
 |>
 sort(
