@@ -28,8 +28,7 @@ class Assemble extends munit.FunSuite {
     assertEquals(printed,
 """from(bucket: "netdatatsdb/autogen")
 |> range(
-start:
--1h
+start: -1h
 )""")
   }
   test("assemble - inline lambda") {
@@ -53,12 +52,10 @@ start:
     assertEquals(printed,
 """from(bucket: "netdatatsdb/autogen")
 |> range(
-start:
--1h
+start: -1h
 )
 |> filter(
-fn:
-(r) =>
+fn: (r) =>
 r["_measurement"] == "vpsmetrics"
 )""")
   }
@@ -83,26 +80,21 @@ r["_measurement"] == "vpsmetrics"
     assertEquals(printed,
 """from(bucket: "netdatatsdb/autogen")
 |> range(
-start:
--1h
+start: -1h
 )
 |> filter(
-fn:
-(r) =>
+fn: (r) =>
 r["_measurement"] == "cpsmetrics" and "host" == "vpsfrsqlpac1" and r["_field"] == "pcpu" and r["_value"] > 80
 )
 |> sort(
-columns:
-[
+columns: [
 "_value"
 ,
 ]
-desc:
-true
+desc: true
 )
 |> limit(
-n:
-10
+n: 10
 )
 |> yield(
 )""")
