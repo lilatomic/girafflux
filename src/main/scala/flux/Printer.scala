@@ -26,7 +26,12 @@ object Printer {
       case ::(head, next) => (s + head) :: next
       case Nil => throw PrintingException(s"expected at least 1 item in list")
 
-  private def coallesceSingles(s0: List[String], s1: List[String], sep: String, start: Option[String] = None, end: Option[String] = None): List[String] =
+  def appendToLast(l: List[String], s: String): List[String] =
+    l match
+      case Nil => throw PrintingException(s"expected at least 1 item in list")
+      case _ => l.init :+ s
+
+  private def coalesceSingles(s0: List[String], s1: List[String], sep: String, start: Option[String] = None, end: Option[String] = None): List[String] =
     s0 match
       case head0 :: Nil =>
         s1 match
@@ -37,12 +42,23 @@ object Printer {
           case head1 :: Nil => prependOptionToList(start, s0) :+ (sep + head1 + end.getOrElse(""))
           case _ => prependOptionToList(start, s0) ++ (sep :: appendOptionToList(s1, end))
 
+  private def coalesceSingle(s0: List[String], start: Option[String] = None, end: Option[String] = None): List[String] =
+    s0 match
+      case head0 :: Nil => List(start.getOrElse("") + head0 + end.getOrElse(""))
+      case _ => appendOptionToList(prependOptionToList(start, s0), end)
+
   def print(expr: fExpr, indent: Int = 0): List[String] =
     expr match
       case fExpr.Query(from, ops) => print(from, indent) ++ ops.flatMap(print(_, indent + 1))
       case fExpr.From(bucket) => List(s"from(bucket: \"${l(bucket)}\")")
       case fExpr.|>(inv) => prependToFirst("|> ", print(inv))
-      case fExpr.Call(op, args) => (s"${l(op)}(" :: args.flatMap(print(_, indent))) :+ ")"
+      case fExpr.Call(op, args) =>
+        val opStr = s"${l(op)}("
+        val argsLists = args.map(print(_, indent))
+        argsLists match
+          case Nil => List(opStr + ")")
+          case head :: Nil => coalesceSingle(head, start=Some(opStr), end=Some(")"))
+          case _ => (opStr :: argsLists.flatMap(x => x :+ ",")) :+ ")"
       case fExpr.Arg(name, value) => prependToFirst(s"${l(name)}: ", print(value, indent))
       case fExpr.Identifier(tok) => List(l(tok))
       case v: fExpr.Function => printFunction(v, indent)
@@ -51,7 +67,7 @@ object Printer {
       case fExpr.Index(obj, value) =>
         val objStr = print(obj, indent)
         val valueStr = print(value, indent)
-        coallesceSingles(
+        coalesceSingles(
           objStr, valueStr, "[", end = Some("]")
         )
       case lit: fLit => printLit(lit, indent)
@@ -60,7 +76,7 @@ object Printer {
     s"(${v.params.map(l).mkString(",")}) =>" :: print(v.body, indent)
 
   private def printOp2(op: fExpr.Op2, indent: Int): List[String] =
-    coallesceSingles(print(op.a0, indent), print(op.a1, indent), s" ${l(op.op)} ")
+    coalesceSingles(print(op.a0, indent), print(op.a1, indent), s" ${l(op.op)} ")
 
   private def printLit(lit: fLit, indent: Int): List[String] =
     lit match
