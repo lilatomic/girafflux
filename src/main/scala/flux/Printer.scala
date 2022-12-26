@@ -21,6 +21,11 @@ object Printer {
       case Some(v) => l :+ v
       case None => l
 
+  def prependToFirst(s: String, l: List[String]): List[String] =
+    l match
+      case ::(head, next) => (s + head) :: next
+      case Nil => throw PrintingException(s"expected at least 1 item in list")
+
   private def coallesceSingles(s0: List[String], s1: List[String], sep: String, start: Option[String] = None, end: Option[String] = None): List[String] =
     s0 match
       case head0 :: Nil =>
@@ -36,7 +41,7 @@ object Printer {
     expr match
       case fExpr.Query(from, ops) => print(from, indent) ++ ops.flatMap(print(_, indent + 1))
       case fExpr.From(bucket) => List(s"from(bucket: \"${l(bucket)}\")")
-      case fExpr.|>(inv) => List("|>") ++ print(inv)
+      case fExpr.|>(inv) => prependToFirst("|> ", print(inv))
       case fExpr.Call(op, args) => (s"${l(op)}(" :: args.flatMap(print(_, indent))) :+ ")"
       case fExpr.Arg(name, value) => s"${l(name)}:" :: print(value, indent)
       case fExpr.Identifier(tok) => List(l(tok))

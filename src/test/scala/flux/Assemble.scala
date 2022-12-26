@@ -27,8 +27,7 @@ class Assemble extends munit.FunSuite {
     val printed = Printer.print(expr).mkString("\n")
     assertEquals(printed,
 """from(bucket: "netdatatsdb/autogen")
-|>
-range(
+|> range(
 start:
 -1h
 )""")
@@ -53,13 +52,11 @@ start:
     val printed = Printer.print(expr).mkString("\n")
     assertEquals(printed,
 """from(bucket: "netdatatsdb/autogen")
-|>
-range(
+|> range(
 start:
 -1h
 )
-|>
-filter(
+|> filter(
 fn:
 (r) =>
 r["_measurement"] == "vpsmetrics"
@@ -85,19 +82,16 @@ r["_measurement"] == "vpsmetrics"
     val printed = Printer.print(expr).mkString("\n")
     assertEquals(printed,
 """from(bucket: "netdatatsdb/autogen")
-|>
-range(
+|> range(
 start:
 -1h
 )
-|>
-filter(
+|> filter(
 fn:
 (r) =>
 r["_measurement"] == "cpsmetrics" and "host" == "vpsfrsqlpac1" and r["_field"] == "pcpu" and r["_value"] > 80
 )
-|>
-sort(
+|> sort(
 columns:
 [
 "_value"
@@ -106,13 +100,11 @@ columns:
 desc:
 true
 )
-|>
-limit(
+|> limit(
 n:
 10
 )
-|>
-yield(
+|> yield(
 )""")
   }
 }
