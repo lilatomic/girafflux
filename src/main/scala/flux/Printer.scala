@@ -29,7 +29,7 @@ object Printer {
   def appendToLast(l: List[String], s: String): List[String] =
     l match
       case Nil => throw PrintingException(s"expected at least 1 item in list")
-      case _ => l.init :+ s
+      case _ => l.init :+ (l.last + s)
 
   private def coalesceSingles(s0: List[String], s1: List[String], sep: String, start: Option[String] = None, end: Option[String] = None): List[String] =
     s0 match
@@ -58,7 +58,7 @@ object Printer {
         argsLists match
           case Nil => List(opStr + ")")
           case head :: Nil => coalesceSingle(head, start=Some(opStr), end=Some(")"))
-          case _ => (opStr :: argsLists.flatMap(x => x :+ ",")) :+ ")"
+          case _ => (opStr :: argsLists.flatMap(x => appendToLast(x, ","))) :+ ")"
       case fExpr.Arg(name, value) => prependToFirst(s"${l(name)}: ", print(value, indent))
       case fExpr.Identifier(tok) => List(l(tok))
       case v: fExpr.Function => printFunction(v, indent)

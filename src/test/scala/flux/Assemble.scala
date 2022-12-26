@@ -84,10 +84,8 @@ r["_measurement"] == "cpsmetrics" and "host" == "vpsfrsqlpac1" and r["_field"] =
 columns: [
 "_value"
 ,
-]
-,
-desc: true
-,
+],
+desc: true,
 )
 |> limit(n: 10)
 |> yield()""")
