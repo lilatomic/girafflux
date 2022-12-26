@@ -5,7 +5,7 @@ sealed trait gExpr {}
 object gExpr {
   case class Query(from: From, Ops: List[gStage]) extends gExpr
 
-  case class From(bucket: gToken) extends gExpr
+  case class From(bucket: Id) extends gExpr
 
   case class gFunction(args: List[Identifier], body: gExpr) extends gExpr
 
