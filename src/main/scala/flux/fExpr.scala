@@ -1,5 +1,7 @@
 package flux
 
+import scala.quoted.Expr
+
 
 sealed trait fExpr {}
 
@@ -15,8 +17,6 @@ object fExpr {
 
   case class Arg(name: fToken, value: fExpr) extends fExpr
 
-  case class Lit(tok: fToken) extends fExpr
-
   case class Identifier(tok: fToken) extends fExpr
 
   case class Function(params: List[fToken], body: fExpr) extends fExpr
@@ -26,4 +26,24 @@ object fExpr {
   case class Op2(op: fToken, a0: fExpr, a1: fExpr) extends fExpr
 
   case class Index(obj: fExpr, value: fExpr) extends fExpr
+}
+
+sealed trait fLit extends fExpr
+
+object fLit {
+  case class Boolean(tok: fToken) extends fLit
+  case class Integer(tok: fToken) extends fLit
+
+  case class Float(tok: fToken) extends fLit
+  case class Duration(tok: fToken) extends fLit
+  case class DateTime(tok: fToken) extends fLit
+  case class Str(tok: fToken) extends fLit
+
+  case class Regex(tok: fToken) extends fLit
+
+  case class Array(elems: List[fExpr]) extends fLit
+
+  case class Record(elems: Map[Str, fExpr]) extends fLit
+
+  case class Dict(elems: Map[fExpr, fExpr]) extends fLit
 }

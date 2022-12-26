@@ -20,7 +20,7 @@ class Assemble extends munit.FunSuite {
       From(fToken(bucketName)),
       List(
         |>(Call(fToken("range"), args = List(
-          Arg(fToken("start"), Lit(fToken("-1h")))
+          Arg(fToken("start"), fLit.Duration(fToken("-1h")))
         )))
       )
     )
@@ -30,13 +30,13 @@ class Assemble extends munit.FunSuite {
       From(fToken(bucketName)),
       List(
         |>(Call(fToken("range"), args = List(
-          Arg(fToken("start"), Lit(fToken("-1h")))
+          Arg(fToken("start"), fLit.Duration(fToken("-1h")))
         ))),
         |>(Call(fToken("filter"), args = List(
           Arg(
             fToken("fn"),
             Function(
-              List(fToken("r")), Op2(fToken("=="), Index(Identifier(fToken("r")), Lit(_measurement)), Lit(fToken("vpsmetrics")))
+              List(fToken("r")), Op2(fToken("=="), Index(Identifier(fToken("r")), fLit.Duration(_measurement)), fLit.Duration(fToken("vpsmetrics")))
             )
           )
         )))
@@ -51,15 +51,15 @@ class Helpers extends munit.FunSuite {
     val expr = Query(
       From(fToken(bucketName)),
       List(
-        |>(range(Lit(fToken("-1h")))),
+        |>(range(fLit.Duration(fToken("-1h")))),
         |>(filterMany(List(
-          Ops.eq(Index(Lit(fToken("r")), Lit(_measurement)), Lit(fToken("cpsmetrics"))),
-          Ops.eq(Lit(fToken("host")), Lit(fToken("vpsfrsqlpac1"))),
-          Ops.eq(Index(Lit(fToken("r")), Lit(fToken("_field"))), Lit(fToken("pcpu"))),
-          Ops.gt(Index(Lit(fToken("r")), Lit(fToken("_value"))), Lit(fToken("80"))),
+          Ops.eq(Index(Identifier(fToken("r")), fLit.Str(_measurement)), fLit.Str(fToken("cpsmetrics"))),
+          Ops.eq(fLit.Str(fToken("host")), fLit.Str(fToken("vpsfrsqlpac1"))),
+          Ops.eq(Index(Identifier(fToken("r")), fLit.Str(fToken("_field"))), fLit.Str(fToken("pcpu"))),
+          Ops.gt(Index(Identifier(fToken("r")), fLit.Str(fToken("_value"))), fLit.Integer(fToken("80"))),
         ))),
-        |>(sort(Lit(fToken("[\"_value\"]")), Some(Lit(fToken("true"))))),
-        |>(limit(Lit(fToken("10")))),
+        |>(sort(fLit.Array(List(fLit.Str(fToken("_value")))), desc=Some(fLit.Boolean(fToken("true"))))),
+        |>(limit(fLit.Integer(fToken("10")))),
         |>(Yield())
       )
     )
