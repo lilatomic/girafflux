@@ -31,6 +31,12 @@ object Printer {
       case Nil => throw PrintingException(s"expected at least 1 item in list")
       case _ => l.init :+ (l.last + s)
 
+  def parenthesised(open: String, items: List[List[String]], separator: String, close: String): List[String] =
+    items match
+      case Nil => List(open + close)
+      case item :: Nil => coalesceSingle(item, Some(open), Some(close))
+      case _ => (open :: items.flatMap(appendToLast(_, separator))) :+ close
+
   private def coalesceSingles(s0: List[String], s1: List[String], sep: String, start: Option[String] = None, end: Option[String] = None): List[String] =
     s0 match
       case head0 :: Nil =>
@@ -53,22 +59,15 @@ object Printer {
       case fExpr.From(bucket) => List(s"from(bucket: \"${l(bucket)}\")")
       case fExpr.|>(inv) => prependToFirst("|> ", print(inv))
       case fExpr.Call(op, args) =>
-        val opStr = s"${l(op)}("
-        val argsLists = args.map(print(_, indent))
-        argsLists match
-          case Nil => List(opStr + ")")
-          case head :: Nil => coalesceSingle(head, start=Some(opStr), end=Some(")"))
-          case _ => (opStr :: argsLists.flatMap(x => appendToLast(x, ","))) :+ ")"
+        parenthesised(s"${l(op)}(", args.map(print(_, indent)), ",", ")")
       case fExpr.Arg(name, value) => prependToFirst(s"${l(name)}: ", print(value, indent))
       case fExpr.Identifier(tok) => List(l(tok))
       case v: fExpr.Function => printFunction(v, indent)
       case fExpr.Op1(op, a0) => l(op) :: print(a0, indent)
       case v: fExpr.Op2 => printOp2(v, indent)
       case fExpr.Index(obj, value) =>
-        val objStr = print(obj, indent)
-        val valueStr = print(value, indent)
         coalesceSingles(
-          objStr, valueStr, "[", end = Some("]")
+          print(obj, indent), print(value, indent), "[", end = Some("]")
         )
       case lit: fLit => printLit(lit, indent)
 
@@ -88,11 +87,7 @@ object Printer {
       case fLit.Str(tok) => List(s"\"${l(tok)}\"")
       case fLit.Regex(tok) => List(s"/${l(tok)}/")
       case fLit.Array(elems) =>
-        val elemsLists = elems.map(print(_, indent))
-        elemsLists match
-          case Nil => List("[]")
-          case head :: Nil => coalesceSingle(head, start=Some("["), end=Some("]"))
-          case _ => ("[" :: elemsLists.flatMap(appendToLast(_, ","))) :+ "]"
+        parenthesised("[", elems.map(print(_, indent)), ",", "]")
       case fLit.Record(elems) => ???
       case fLit.Dict(elems) => ???
 }
