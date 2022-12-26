@@ -87,7 +87,12 @@ object Printer {
       case fLit.DateTime(tok) => List(l(tok))
       case fLit.Str(tok) => List(s"\"${l(tok)}\"")
       case fLit.Regex(tok) => List(s"/${l(tok)}/")
-      case fLit.Array(elems) => ("[" :: elems.map(print(_, indent)).flatMap(_ :+ ",")) :+ "]"
+      case fLit.Array(elems) =>
+        val elemsLists = elems.map(print(_, indent))
+        elemsLists match
+          case Nil => List("[]")
+          case head :: Nil => coalesceSingle(head, start=Some("["), end=Some("]"))
+          case _ => ("[" :: elemsLists.flatMap(appendToLast(_, ","))) :+ "]"
       case fLit.Record(elems) => ???
       case fLit.Dict(elems) => ???
 }

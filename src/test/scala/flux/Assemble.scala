@@ -81,10 +81,7 @@ fn: (r) =>
 r["_measurement"] == "cpsmetrics" and "host" == "vpsfrsqlpac1" and r["_field"] == "pcpu" and r["_value"] > 80
 )
 |> sort(
-columns: [
-"_value"
-,
-],
+columns: ["_value"],
 desc: true,
 )
 |> limit(n: 10)
