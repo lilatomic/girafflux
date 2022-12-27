@@ -29,17 +29,17 @@ object GParser extends Parsers {
   }
 
   def stage: Parser[gExpr.gStage] = positioned {
-    (gToken.Pipe() ~ (stageAaa | stageBbb)) ^^ { case _ ~ s => s}
+    (gToken.Pipe() ~ (stageAaa | stageRange)) ^^ { case _ ~ s => s}
   }
 
   def stageAaa: Parser[gExpr.gStage.aaa] = positioned {
     (lit) ^^ (lit => gExpr.gStage.aaa(lit.s))
   }
 
-  def stageBbb: Parser[gExpr.gStage.range] = positioned {
-    (gToken.Atpersat() ~ gToken.Id("start") ~ lit ~ opt(gToken.Id("stop") ~ lit)) ^^ {
-      case _ ~ _ ~ start ~ Some(_ ~ stop) => gExpr.gStage.range(gExpr.gLit.Duration(start), gExpr.gLit.Duration(stop))
-      case _ ~ _ ~ start ~ None => gExpr.gStage.range(gExpr.gLit.Duration(start))
+  def stageRange: Parser[gExpr.gStage.range] = positioned {
+    (gToken.Atpersat() ~> gToken.Id("start") ~> lit ~ opt(gToken.Id("stop") ~> lit)) ^^ {
+      case start ~ Some(stop) => gExpr.gStage.range(gExpr.gLit.Duration(start), gExpr.gLit.Duration(stop))
+      case start ~ None => gExpr.gStage.range(gExpr.gLit.Duration(start))
     }
   }
 
