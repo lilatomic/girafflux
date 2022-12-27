@@ -21,11 +21,15 @@ object GParser extends Parsers {
   }
 
   def query: Parser[gExpr.Query] = positioned {
-    (gToken.From() ~ identifier ~ stage) ^^ { case _ ~ bucket ~ stage => gExpr.Query(gExpr.From(gExpr.Id(bucket)), List(stage)) }
+    (gToken.From() ~ identifier ~ stages) ^^ { case _ ~ bucket ~ stages => gExpr.Query(gExpr.From(gExpr.Id(bucket)), stages) }
+  }
+
+  def stages: Parser[List[gExpr.gStage]] = {
+    rep1(stage)
   }
 
   def stage: Parser[gExpr.gStage] = positioned {
-    (gToken.Pipe()) ^^ { case pipe => gExpr.gStage.aaa() }
+    (gToken.Pipe() ~ lit) ^^ { case pipe ~ lit => gExpr.gStage.aaa(lit.s) }
   }
 
   private def identifier: Parser[gToken.Id] = positioned {
