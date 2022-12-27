@@ -5,9 +5,12 @@ import giraffe.gToken.*
 import scala.util.parsing.combinator.RegexParsers
 
 
-
 object GLexer extends RegexParsers {
   override def skipWhitespace: Boolean = true
+
+  def literal: Parser[Lit] = {
+    "\"(?:[^\"\\\\]|\\\\.)*\"".r ^^ { s => Lit(s.substring(1, s.length - 1)) }
+  }
 
   def identifier: Parser[Id] = {
     "\\p{L}[\\p{L}\\p{N}]*".r ^^ { str => Id(str) }
@@ -48,8 +51,9 @@ object GLexer extends RegexParsers {
         | bracel | bracer
         | question | hash | atpersat | pipe
         | from
+        | literal
         | identifier
-    )) ^^ { rawTokens => rawTokens}
+    )) ^^ { rawTokens => rawTokens }
   }
 
   def lex(code: String): Either[gLexerError, List[gToken]] = {

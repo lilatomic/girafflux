@@ -28,7 +28,7 @@ object gExpr {
 
     case class filter(fn: gFunction) extends gStage
 
-    case class aaa() extends gStage
+    case class aaa(inv: String) extends gStage
   }
 
   object gBuiltin {
