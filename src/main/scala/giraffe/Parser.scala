@@ -29,7 +29,15 @@ object GParser extends Parsers {
   }
 
   def stage: Parser[gExpr.gStage] = positioned {
-    (gToken.Pipe() ~ lit) ^^ { case pipe ~ lit => gExpr.gStage.aaa(lit.s) }
+    (gToken.Pipe() ~ (stageAaa | stageBbb)) ^^ { case _ ~ s => s}
+  }
+
+  def stageAaa: Parser[gExpr.gStage.aaa] = positioned {
+    (lit) ^^ (lit => gExpr.gStage.aaa(lit.s))
+  }
+
+  def stageBbb: Parser[gExpr.gStage.bbb] = positioned {
+    (gToken.Atpersat() ~ gToken.Id("start") ~ lit) ^^ { case _ ~ _ ~ lit => gExpr.gStage.bbb(lit.s)}
   }
 
   private def identifier: Parser[gToken.Id] = positioned {
