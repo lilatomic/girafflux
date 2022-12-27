@@ -37,7 +37,10 @@ object GParser extends Parsers {
   }
 
   def stageBbb: Parser[gExpr.gStage.range] = positioned {
-    (gToken.Atpersat() ~ gToken.Id("start") ~ lit ~ gToken.Id("stop") ~ lit) ^^ { case _ ~ _ ~ start ~ _ ~ stop => gExpr.gStage.range(gExpr.gLit.Duration(start), gExpr.gLit.Duration(stop))}
+    (gToken.Atpersat() ~ gToken.Id("start") ~ lit ~ opt(gToken.Id("stop") ~ lit)) ^^ {
+      case _ ~ _ ~ start ~ Some(_ ~ stop) => gExpr.gStage.range(gExpr.gLit.Duration(start), gExpr.gLit.Duration(stop))
+      case _ ~ _ ~ start ~ None => gExpr.gStage.range(gExpr.gLit.Duration(start))
+    }
   }
 
   private def identifier: Parser[gToken.Id] = positioned {
