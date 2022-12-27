@@ -7,15 +7,15 @@ val bucketName = "netdatatsdb/autogen"
 class Assemble extends munit.FunSuite {
   test("assemble - select all") {
     val expr = Query(
-      From(Id(bucketName)),
+      From(Id(gToken.Id(bucketName))),
       List()
     )
   }
   test("assemble - time range") {
     val expr = Query(
-      From(Id(bucketName)),
+      From(Id(gToken.Id(bucketName))),
       List(
-        gStage.range(start = gLit.Duration(Lit("-1h")))
+        gStage.range(start = gLit.Duration(gToken.Lit("-1h")))
       )
     )
   }

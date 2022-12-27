@@ -1,6 +1,10 @@
 package giraffe
 
+import giraffe.gToken.*
+
 import scala.util.parsing.combinator.RegexParsers
+
+
 
 object GLexer extends RegexParsers {
   override def skipWhitespace: Boolean = true
@@ -11,43 +15,47 @@ object GLexer extends RegexParsers {
 
   // text keywords
 
-  def from = "from" ^^ (_ => From)
+  def from = "from" ^^ (_ => From())
 
   // punctiation keywords
-  def underscore = "_" ^^ (_ => Underscore)
+  def underscore = "_" ^^ (_ => Underscore())
 
-  def pipe = "|" ^^ (_ => Pipe)
+  def pipe = "|" ^^ (_ => Pipe())
 
-  def atpersat = "@" ^^ (_ => Atpersat)
+  def atpersat = "@" ^^ (_ => Atpersat())
 
-  def hash = "#" ^^ (_ => Hash)
+  def hash = "#" ^^ (_ => Hash())
 
-  def question = "?" ^^ (_ => Question)
+  def question = "?" ^^ (_ => Question())
 
-  def bracel = "{" ^^ (_ => BraceL)
+  def bracel = "{" ^^ (_ => BraceL())
 
-  def bracer = "}" ^^ (_ => BraceR)
+  def bracer = "}" ^^ (_ => BraceR())
 
-  def bracketl = "[" ^^ (_ => BracketL)
+  def bracketl = "[" ^^ (_ => BracketL())
 
-  def bracketr = "]" ^^ (_ => BracketR)
+  def bracketr = "]" ^^ (_ => BracketR())
 
-  def parenl = "(" ^^ (_ => ParenL)
+  def parenl = "(" ^^ (_ => ParenL())
 
-  def parenr = ")" ^^ (_ => ParenR)
+  def parenr = ")" ^^ (_ => ParenR())
 
-  def tokens = {
+  def tokens: GLexer.Parser[List[gToken]] = {
     phrase(rep1(
-      parenr | parenl
+      parenr
+        | parenl
         | bracketl | bracketr
         | bracel | bracer
         | question | hash | atpersat | pipe
         | from
         | identifier
-    ))
+    )) ^^ { rawTokens => rawTokens}
   }
 
-  def lex(code: String) = {
-    parse(tokens, code)
+  def lex(code: String): Either[gLexerError, List[gToken]] = {
+    parse(tokens, code) match {
+      case NoSuccess(msg, next) => Left(gLexerError(Location(next.pos.line, next.pos.column), msg))
+      case Success(result, next) => Right(result)
+    }
   }
 }
