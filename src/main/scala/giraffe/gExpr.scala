@@ -22,7 +22,7 @@ object gExpr {
   sealed trait gStage extends gExpr
 
   object gStage {
-    case class range(start: gExpr, end: gExpr = gBuiltin.Now) extends gStage
+    case class range(start: gExpr, stop: gExpr = gBuiltin.Now) extends gStage
 
     case class map(fn: gFunction) extends gStage
 

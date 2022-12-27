@@ -11,7 +11,7 @@ object WorkFlow {
 
 class Parser extends munit.FunSuite {
   test("anything") {
-    val expr = WorkFlow.run("from x | \"zzz\" |@ start \"yyy\"")
+    val expr = WorkFlow.run("from x | \"zzz\" |@ start \"y0\" stop \"y1\"")
     assertEquals(expr, null)
   }
 }
