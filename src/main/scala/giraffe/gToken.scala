@@ -17,12 +17,18 @@ object gToken {
 
   case class From() extends gToken
 
+  case class Period() extends gToken
+
   // Stages
   case class Pipe() extends gToken
 
   case class Atpersat() extends gToken
 
   case class Hash() extends gToken
+
+  case class Dollar() extends gToken
+
+  case class Percent() extends gToken
 
   case class Question() extends gToken
 

@@ -29,7 +29,7 @@ object GParser extends Parsers {
   }
 
   def stage: Parser[gExpr.gStage] = positioned {
-    (gToken.Pipe() ~ (stageAaa | stageRange)) ^^ { case _ ~ s => s}
+    (gToken.Pipe() ~ (stageAaa | stageFilterMeasurement | stageRange)) ^^ { case _ ~ s => s}
   }
 
   def stageAaa: Parser[gExpr.gStage.aaa] = positioned {
@@ -41,6 +41,10 @@ object GParser extends Parsers {
       case start ~ Some(stop) => gExpr.gStage.range(gExpr.gLit.Duration(start), gExpr.gLit.Duration(stop))
       case start ~ None => gExpr.gStage.range(gExpr.gLit.Duration(start))
     }
+  }
+
+  def stageFilterMeasurement: Parser[gExpr.gStage.filterMeasurement] = positioned {
+    (gToken.Dollar() ~> lit) ^^ (i => gExpr.gStage.filterMeasurement(_measurement = gExpr.gLit.Duration(i)))
   }
 
   private def identifier: Parser[gToken.Id] = positioned {

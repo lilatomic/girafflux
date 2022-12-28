@@ -14,4 +14,8 @@ class Parser extends munit.FunSuite {
     val expr = WorkFlow.run("from x | \"zzz\" |@ start \"y0\" stop \"y1\" |@ start \"x0\"")
     assertEquals(expr, null)
   }
+  test("common-queries/operate-on-columns/#calculate-a-new-column"){
+    val expr = WorkFlow.run("from noaa |$ \"average_temperature\" |@ start \"-30d\" | \"???\"")
+    assertEquals(expr, null)
+  }
 }

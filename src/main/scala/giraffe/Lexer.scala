@@ -29,6 +29,10 @@ object GLexer extends RegexParsers {
 
   def hash = "#" ^^ (_ => Hash())
 
+  def dollar = "$" ^^^ Dollar()
+
+  def percent = "%" ^^^ Percent()
+
   def question = "?" ^^ (_ => Question())
 
   def bracel = "{" ^^ (_ => BraceL())
@@ -49,7 +53,7 @@ object GLexer extends RegexParsers {
         | parenl
         | bracketl | bracketr
         | bracel | bracer
-        | question | hash | atpersat | pipe
+        | question | percent | dollar | hash | atpersat | pipe
         | from
         | literal
         | identifier
