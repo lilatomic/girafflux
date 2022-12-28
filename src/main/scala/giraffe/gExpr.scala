@@ -36,6 +36,8 @@ object gExpr {
 
     case class filterMeasurement(_measurement: gExpr) extends gStage
 
+    case class filterField(_field: gExpr) extends gStage
+
     case class aaa(inv: String) extends gStage
 
     case class bbb(inv: String) extends gStage
