@@ -23,6 +23,8 @@ object GLexer extends RegexParsers {
   // punctiation keywords
   def underscore = "_" ^^ (_ => Underscore())
 
+  def period = "." ^^^ Period()
+
   def pipe = "|" ^^ (_ => Pipe())
 
   def atpersat = "@" ^^ (_ => Atpersat())
@@ -54,9 +56,10 @@ object GLexer extends RegexParsers {
         | bracketl | bracketr
         | bracel | bracer
         | question | percent | dollar | hash | atpersat | pipe
-        | from
+        | from | period
         | literal
         | identifier
+        | underscore
     )) ^^ { rawTokens => rawTokens }
   }
 
