@@ -48,7 +48,7 @@ object gExpr {
 
     case class map(id: Id | ImplicitRef, expr: gExpr) extends gStage
 
-    case class mapMany(id: Option[ImplicitRef], many: gLit.Record) extends gStage
+    case class mapMany(id: Option[ImplicitRef], many: gLit.Record | Block) extends gStage
 
     case class filter(fn: gFunction) extends gStage
 
@@ -58,7 +58,7 @@ object gExpr {
 
     case class filterFieldMany(_fields: List[gExpr]) extends gStage
 
-    case class streamMap(call: Call) extends gStage
+    case class streamMap(block: Block) extends gStage
   }
 
   object gBuiltin {

@@ -31,10 +31,13 @@ object GParser extends Parsers {
     (gToken.From() ~ identifier ~ stages) ^^ { case _ ~ bucket ~ stages => gExpr.Query(gExpr.From(bucket), stages) }
   }
 
-  def block: Parser[gExpr.Block] = positioned {
-    val many = gToken.BraceL() ~> rep(block) <~ gToken.BraceR() ^^ { case exprs => gExpr.Block(exprs)}
+  private def blockMany = {
+    gToken.BraceL() ~> rep(block) <~ gToken.BraceR() ^^ { case exprs => gExpr.Block(exprs) }
+  }
 
-    ((call | assign | index | identifier | lit) ^^ { case i => gExpr.Block.lift(i)}) | many
+  def block: Parser[gExpr.Block] = positioned {
+    ((call | assign | index | identifier | lit) ^^ { case i => gExpr.Block.lift(i)})
+      | blockMany
   }
 
   def call: Parser[gExpr.Call] = positioned {
@@ -58,7 +61,7 @@ object GParser extends Parsers {
   }
 
   def stageStreamMap: Parser[gExpr.gStage.streamMap] = positioned {
-    call ^^ (c => gExpr.gStage.streamMap(c))
+    call ^^ (c => gExpr.gStage.streamMap(gExpr.Block.lift(c)))
   }
 
   def stageRange: Parser[gExpr.gStage.range] = positioned {
@@ -89,7 +92,9 @@ object GParser extends Parsers {
   def stageMapMany: Parser[gExpr.gStage.mapMany] = positioned {
     val replacing = (gToken.Period() ~> implicitRef ~ litRecord) ^^ { case i ~ b => gExpr.gStage.mapMany(Some(i), b)}
     val adding = (gToken.Period() ~> litRecord) ^^ (b => gExpr.gStage.mapMany(None, b))
-    replacing | adding
+    val replacingBlock = (gToken.Period() ~> implicitRef ~ blockMany) ^^ { case i ~ b => gExpr.gStage.mapMany(Some(i), b)}
+    val addingBlock = (gToken.Period() ~> blockMany) ^^ (b => gExpr.gStage.mapMany(None, b))
+    replacingBlock | replacing | addingBlock | adding
   }
 
   private def identifier: Parser[gExpr.Id] = positioned {
