@@ -11,7 +11,7 @@ object WorkFlow {
 
 class Parser extends munit.FunSuite {
   test("anything") {
-    val expr = WorkFlow.run("""from x |. "zzz" |@ start "y0" stop "y1" |@ start "x0"""")
+    val expr = WorkFlow.run("""from x |._ "zzz" |@ start "y0" stop "y1" |@ start "x0"""")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
@@ -21,12 +21,12 @@ class Parser extends munit.FunSuite {
     assert(expr.isRight)
   }
   test("common-queries/multiple-fields-in-calculations/") {
-    val expr = WorkFlow.run("""from examplebucket |@ start "1m" |% "A" , "B" |. mathmul(a0: _.A, a1: _.B)""")
+    val expr = WorkFlow.run("""from examplebucket |@ start "1m" |% "A" , "B" |._ mathmul(a0: _.A, a1: _.B)""")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
   test("map without identifier") {
-    val expr = WorkFlow.run("from x |. w")
+    val expr = WorkFlow.run("from x |._ w")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
@@ -36,7 +36,7 @@ class Parser extends munit.FunSuite {
     assert(expr.isRight)
   }
   test("common-queries/operate-on-columns/#recalculate-the-_values-column") {
-    val expr = WorkFlow.run("""from noaa |$ "average_temperature" |@ start "-30d" |. mathdiv(a0: mathmul(a0: mathsub(a0: _, a1: 32.0), a1: 5.0), a1: 9.0)""")
+    val expr = WorkFlow.run("""from noaa |$ "average_temperature" |@ start "-30d" |._ mathdiv(a0: mathmul(a0: mathsub(a0: _, a1: 32.0), a1: 5.0), a1: 9.0)""")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
@@ -52,7 +52,7 @@ class Parser extends munit.FunSuite {
   }
 
   test("map call with no identifier"){
-    val expr = WorkFlow.run("from a |. q ( v: v )")
+    val expr = WorkFlow.run("from a |._ q ( v: v )")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
@@ -64,23 +64,23 @@ class Parser extends munit.FunSuite {
   }
 
   test("map call wtih multiple args") {
-    val expr = WorkFlow.run("from a |. q ( a0: a0 , a1: a1 )")
+    val expr = WorkFlow.run("from a |._ q ( a0: a0 , a1: a1 )")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
 
   test("literals")  {
-    val expr = WorkFlow.run("from a |. 12")
+    val expr = WorkFlow.run("from a |._ 12")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
   test("literals - array of ints") {
-    val expr = WorkFlow.run("from a |. [1 , 2 , 3 ]")
+    val expr = WorkFlow.run("from a |._ [1 , 2 , 3 ]")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
   test("literals - array of strings") {
-    val expr = WorkFlow.run("""from a |. ["s"]""")
+    val expr = WorkFlow.run("""from a |._ ["s"]""")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
@@ -102,6 +102,11 @@ class Parser extends munit.FunSuite {
   }
   test("record"){
     val expr = WorkFlow.run("""from a |. q { w: 1 , e: 2 } """)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
+  test("map many"){
+    val expr = WorkFlow.run("""from a |. { w: 1 , e: 2 } """)
     pprint.pprintln(expr)
     assert(expr.isRight)
   }

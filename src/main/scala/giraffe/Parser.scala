@@ -52,7 +52,7 @@ object GParser extends Parsers {
   }
 
   def stage: Parser[gExpr.gStage] = positioned {
-    (gToken.Pipe() ~ (stageStreamMap | stageFilterMeasurement | stageFilterFieldMany | stageFilterField | stageRange | stageMap )) ^^ { case _ ~ s => s }
+    (gToken.Pipe() ~ (stageStreamMap | stageFilterMeasurement | stageFilterFieldMany | stageFilterField | stageRange | stageMap | stageMapMany )) ^^ { case _ ~ s => s }
   }
 
   def stageStreamMap: Parser[gExpr.gStage.streamMap] = positioned {
@@ -79,9 +79,13 @@ object GParser extends Parsers {
   }
 
   def stageMap: Parser[gExpr.gStage.map] = positioned {
-    val withIdentifier = (gToken.Period() ~> identifier ~ block) ^^ { case i ~ b => gExpr.gStage.map(Some(i), b) }
-    val withoutIdentifier = (gToken.Period() ~> block) ^^ (b => gExpr.gStage.map(None, b))
+    val withIdentifier = (gToken.Period() ~> identifier ~ block) ^^ { case i ~ b => gExpr.gStage.map(i, b) }
+    val withoutIdentifier = (gToken.Period() ~> implicitRef ~ block) ^^ { case i ~ b => gExpr.gStage.map(i, b) }
     withIdentifier | withoutIdentifier
+  }
+
+  def stageMapMany: Parser[gExpr.gStage.mapMany] = positioned {
+    (gToken.Period() ~> litRecord) ^^ (b => gExpr.gStage.mapMany(b))
   }
 
   private def identifier: Parser[gExpr.Id] = positioned {
@@ -96,7 +100,7 @@ object GParser extends Parsers {
     gToken.BracketL() ~> repsep(block, gToken.Comma()) <~ gToken.BracketR() ^^ (items => gExpr.gLit.Array(items))
   }
 
-  def litMap: Parser[gExpr.gLit.Record] = positioned {
+  def litRecord: Parser[gExpr.gLit.Record] = positioned {
     (gToken.BraceL() ~> repsep(identifier ~ gToken.Colon() ~ block, gToken.Comma()) <~ gToken.BraceR()) ^^ (kvpairs => gExpr.gLit.Record(kvpairs.map { case k ~ _ ~ v => k -> v }.toMap))
   }
 
@@ -105,7 +109,7 @@ object GParser extends Parsers {
     | accept("float literal", { case f: gToken.LitFloat => gExpr.gLit.Float(f) })
     | accept("int literal", { case i: gToken.LitInt => gExpr.gLit.Int(i) })
     | litArray
-    | litMap
+    | litRecord
   }
 
   def implicitRef: Parser[gExpr.ImplicitRef] = positioned {

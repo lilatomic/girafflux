@@ -44,7 +44,9 @@ object gExpr {
   object gStage {
     case class range(start: gExpr, stop: gExpr = gBuiltin.Now) extends gStage
 
-    case class map(id: Option[Id], expr: gExpr) extends gStage
+    case class map(id: Id | ImplicitRef, expr: gExpr) extends gStage
+
+    case class mapMany(many: gLit.Record) extends gStage
 
     case class filter(fn: gFunction) extends gStage
 
