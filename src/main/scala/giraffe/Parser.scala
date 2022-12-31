@@ -31,7 +31,11 @@ object GParser extends Parsers {
   }
 
   def call: Parser[gExpr.Call] = positioned {
-    (identifier ~ gToken.ParenL() ~ repsep(block | implicitRef, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(gExpr.Id(i), args) }
+    (identifier ~ gToken.ParenL() ~ repsep(arg, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(gExpr.Id(i), args) }
+  }
+
+  def arg: Parser[gExpr.Arg] =  {
+    (identifier ~ gToken.Colon() ~ (block | implicitRef) ) ^^ { case i ~ _ ~ v => gExpr.Arg(gExpr.Id(i), v)}
   }
 
   def stages: Parser[List[gExpr.gStage]] = {
@@ -43,7 +47,7 @@ object GParser extends Parsers {
   }
 
   def stageStreamMap: Parser[gExpr.gStage.streamMap] = positioned {
-    (lit) ^^ (lit => gExpr.gStage.streamMap(lit))
+    call ^^ (c => gExpr.gStage.streamMap(c))
   }
 
   def stageRange: Parser[gExpr.gStage.range] = positioned {

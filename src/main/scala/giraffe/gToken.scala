@@ -51,4 +51,6 @@ object gToken {
   case class ParenR() extends gToken
 
   case class Comma() extends gToken
+
+  case class Colon() extends gToken
 }

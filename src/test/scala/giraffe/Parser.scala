@@ -11,7 +11,7 @@ object WorkFlow {
 
 class Parser extends munit.FunSuite {
   test("anything") {
-    val expr = WorkFlow.run("from x | \"zzz\" |@ start \"y0\" stop \"y1\" |@ start \"x0\"")
+    val expr = WorkFlow.run("from x |. \"zzz\" |@ start \"y0\" stop \"y1\" |@ start \"x0\"")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
@@ -32,35 +32,41 @@ class Parser extends munit.FunSuite {
     assert(expr.isRight)
   }
   test("common-queries/operate-on-columns/#recalculate-the-_values-column") {
-    val expr = WorkFlow.run("from noaa |$ \"average_temperature\" |@ start \"-30d\" |. mathdiv(mathmul(mathsub(_, 32.0), 5.0), 9.0)")
+    val expr = WorkFlow.run("from noaa |$ \"average_temperature\" |@ start \"-30d\" |. mathdiv(a0: mathmul(a0: mathsub(a0: _, a1: 32.0), a1: 5.0), a1: 9.0)")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
   test("common-queries/operate-on-columns/#calculate-a-new-column"){
-    val expr = WorkFlow.run("from noaa |$ \"average_temperature\" |@ start \"-30d\" |. celsius mathdiv(mathmul(mathsub(_, 32.0), 5.0), 9.0)")
+    val expr = WorkFlow.run("from noaa |$ \"average_temperature\" |@ start \"-30d\" |. celsius mathdiv(a0: mathmul(a0: mathsub(a0: _, a1: 32.0), a1: 5.0), a1: 9.0)")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
+  test("streamMap with call"){
+    val expr = WorkFlow.run("from a | q ( v: v )")
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
+
   test("map call with no identifier"){
-    val expr = WorkFlow.run("from a |. q ( v )")
+    val expr = WorkFlow.run("from a |. q ( v: v )")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
 
   test("map call with identifier") {
-    val expr = WorkFlow.run("from a |. b q ( v )")
+    val expr = WorkFlow.run("from a |. b q ( v: v )")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
 
   test("map call wtih multiple args") {
-    val expr = WorkFlow.run("from a |. q ( a0 , a1 )")
+    val expr = WorkFlow.run("from a |. q ( a0: a0 , a1: a1 )")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
 
   test("literals")  {
-    val expr = WorkFlow.run("from a | 12")
+    val expr = WorkFlow.run("from a |. 12")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
@@ -81,7 +87,7 @@ class Parser extends munit.FunSuite {
     assert(expr.isRight)
   }
   test("mapWith with call") {
-    val expr = WorkFlow.run("from a |. x q ( v, 32 )")
+    val expr = WorkFlow.run("from a |. x q ( a0: v, a1: 32 )")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }

@@ -56,9 +56,11 @@ object GLexer extends RegexParsers {
 
   def comma = "," ^^^ Comma()
 
+  def colon = ":" ^^^ Colon()
+
   def tokens: GLexer.Parser[List[gToken]] = {
     phrase(rep1(
-      comma
+      comma | colon
         | parenl | parenr
         | bracketl | bracketr
         | bracel | bracer
