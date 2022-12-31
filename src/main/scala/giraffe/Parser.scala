@@ -32,7 +32,9 @@ object GParser extends Parsers {
   }
 
   def block: Parser[gExpr.Block] = positioned {
-    (call | index | identifier | lit) ^^ { case i => gExpr.Block.lift(i)}
+    val many = gToken.BraceL() ~> rep(block) <~ gToken.BraceR() ^^ { case exprs => gExpr.Block(exprs)}
+
+    ((call | assign | index | identifier | lit) ^^ { case i => gExpr.Block.lift(i)}) | many
   }
 
   def call: Parser[gExpr.Call] = positioned {
@@ -44,7 +46,7 @@ object GParser extends Parsers {
   }
 
   def index: Parser[gExpr.Index] = {
-    ((identifier | implicitRef) ~ gToken.Period() ~ (identifier)) ^^ { case obj ~ _ ~ value => gExpr.Index(obj, value)}
+    ((identifier | implicitRef) ~ gToken.Period() ~ identifier) ^^ { case obj ~ _ ~ value => gExpr.Index(obj, value)}
   }
 
   def stages: Parser[List[gExpr.gStage]] = {
@@ -116,6 +118,10 @@ object GParser extends Parsers {
 
   def implicitRef: Parser[gExpr.ImplicitRef] = positioned {
     gToken.Underscore() ^^^ gExpr.ImplicitRef()
+  }
+
+  def assign: Parser[gExpr.Assign] = positioned {
+    ((index | identifier) ~ gToken.Equal() ~ block) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value)}
   }
 
 }

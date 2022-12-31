@@ -115,4 +115,14 @@ class Parser extends munit.FunSuite {
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
+  test("assign") {
+    val expr = WorkFlow.run("""from a |._ x = 42""")
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
+  test("multiblock") {
+    val expr = WorkFlow.run("""from a |._ { x = 42 math.mul(a0: x, a1: x) }""")
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
 }

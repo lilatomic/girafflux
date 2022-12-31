@@ -39,6 +39,10 @@ object gToken {
 
   case class Plus() extends gToken
 
+  // Variables
+
+  case class Equal() extends gToken
+
   // Parentheses
   case class BraceL() extends gToken
 

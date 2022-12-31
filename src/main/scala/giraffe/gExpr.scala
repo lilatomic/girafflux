@@ -11,10 +11,10 @@ object gExpr {
 
   case class Script(imports: List[ModuleImport], queries: List[Query]) extends gExpr
 
-  case class Block(expr: gExpr) extends gExpr
+  case class Block(exprs: List[gExpr]) extends gExpr
 
   object Block {
-    def lift(expr: gExpr): Block = Block(expr)
+    def lift(expr: gExpr): Block = Block(List(expr))
   }
 
   case class Query(from: From, Ops: List[gStage]) extends gExpr
@@ -38,6 +38,8 @@ object gExpr {
   case class Id(tok: gToken) extends gExpr
 
   case class ImplicitRef() extends gExpr
+
+  case class Assign(obj: gExpr, value: gExpr) extends gExpr
 
   sealed trait gStage extends gExpr
 
