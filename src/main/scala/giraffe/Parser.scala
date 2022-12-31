@@ -96,11 +96,16 @@ object GParser extends Parsers {
     gToken.BracketL() ~> repsep(block, gToken.Comma()) <~ gToken.BracketR() ^^ (items => gExpr.gLit.Array(items))
   }
 
+  def litMap: Parser[gExpr.gLit.Record] = positioned {
+    (gToken.BraceL() ~> repsep(identifier ~ gToken.Colon() ~ block, gToken.Comma()) <~ gToken.BraceR()) ^^ (kvpairs => gExpr.gLit.Record(kvpairs.map { case k ~ _ ~ v => k -> v }.toMap))
+  }
+
   def lit: Parser[gExpr.gLit] = positioned {
     litStr
     | accept("float literal", { case f: gToken.LitFloat => gExpr.gLit.Float(f) })
     | accept("int literal", { case i: gToken.LitInt => gExpr.gLit.Int(i) })
     | litArray
+    | litMap
   }
 
   def implicitRef: Parser[gExpr.ImplicitRef] = positioned {

@@ -100,4 +100,9 @@ class Parser extends munit.FunSuite {
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
+  test("record"){
+    val expr = WorkFlow.run("""from a |. q { w: 1 , e: 2 } """)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
 }

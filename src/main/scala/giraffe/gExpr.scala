@@ -71,5 +71,7 @@ object gExpr {
     case class Int(tok: gToken.LitInt) extends gLit
 
     case class Array(items: List[gExpr]) extends gLit
+
+    case class Record(items: Map[Id, gExpr]) extends gLit
   }
 }
