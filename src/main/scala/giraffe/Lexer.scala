@@ -10,8 +10,9 @@ object GLexer extends RegexParsers {
 
   def literal: Parser[Lit] = {
     val litStr = "\"(?:[^\"\\\\]|\\\\.)*\"".r ^^ { s => LitStr(s.substring(1, s.length - 1)) }
-    val litFloat = "\\p{Nd}+".r ^^ {s => LitFloat(s)}
-    litStr | litFloat
+    val litFloat = "\\p{Nd}+.\\p{Nd}*".r ^^ {s => LitFloat(s)}
+    val litInt = "\\p{Nd}+".r ^^ {s => LitInt(s)}
+    litStr | litFloat | litInt
   }
 
   def identifier: Parser[Id] = {

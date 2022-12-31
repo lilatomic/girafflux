@@ -78,6 +78,7 @@ object GParser extends Parsers {
   def lit: Parser[gExpr.gLit] = positioned {
     accept("string literal", { case s: gToken.LitStr => gExpr.gLit.Str(s) })
     | accept("float literal", { case f: gToken.LitFloat => gExpr.gLit.Float(f) })
+    | accept("int literal", { case i: gToken.LitInt => gExpr.gLit.Int(i) })
   }
 
 }

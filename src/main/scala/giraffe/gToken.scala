@@ -13,6 +13,7 @@ object gToken {
   // Literals
   sealed trait Lit extends  gToken
   case class LitStr(s: String) extends Lit
+  case class LitInt(i: String) extends Lit
   case class LitFloat(f: String) extends Lit
 
   // Keywords
