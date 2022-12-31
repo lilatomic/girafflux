@@ -26,6 +26,11 @@ class Parser extends munit.FunSuite {
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
+  test("common-queries/operate-on-columns/#find-and-count-unique-values-in-a-column") {
+    val expr = WorkFlow.run("from noaa |@ start \"-30d\" | group() | keep(columns: [\"location\"]) | unique(columns: \"location\")")
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
   test("common-queries/operate-on-columns/#recalculate-the-_values-column") {
     val expr = WorkFlow.run("from noaa |$ \"average_temperature\" |@ start \"-30d\" |. mathdiv(mathmul(mathsub(_, 32.0), 5.0), 9.0)")
     pprint.pprintln(expr)
@@ -56,6 +61,16 @@ class Parser extends munit.FunSuite {
 
   test("literals")  {
     val expr = WorkFlow.run("from a | 12")
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
+  test("literals - array of ints") {
+    val expr = WorkFlow.run("from a |. [1 , 2 , 3 ]")
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
+  test("literals - array of strings") {
+    val expr = WorkFlow.run("from a |. [\"s\"]")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }

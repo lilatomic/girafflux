@@ -56,5 +56,7 @@ object gExpr {
     case class Float(tok: gToken.LitFloat) extends gLit
 
     case class Int(tok: gToken.LitInt) extends gLit
+
+    case class Array(items: List[gExpr]) extends gLit
   }
 }

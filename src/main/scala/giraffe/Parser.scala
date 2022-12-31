@@ -71,10 +71,15 @@ object GParser extends Parsers {
     accept("identifier", { case id@gToken.Id(name) => id })
   }
 
+  def litArray: Parser[gExpr.gLit.Array] = positioned {
+    gToken.BracketL() ~> repsep(block, gToken.Comma()) <~ gToken.BracketR() ^^ (items => gExpr.gLit.Array(items))
+  }
+
   def lit: Parser[gExpr.gLit] = positioned {
     accept("string literal", { case s: gToken.LitStr => gExpr.gLit.Str(s) })
     | accept("float literal", { case f: gToken.LitFloat => gExpr.gLit.Float(f) })
     | accept("int literal", { case i: gToken.LitInt => gExpr.gLit.Int(i) })
+    | litArray
   }
 
   def implicitRef: Parser[gExpr.ImplicitRef] = positioned {
