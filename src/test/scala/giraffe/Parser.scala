@@ -12,50 +12,62 @@ object WorkFlow {
 class Parser extends munit.FunSuite {
   test("anything") {
     val expr = WorkFlow.run("from x | \"zzz\" |@ start \"y0\" stop \"y1\" |@ start \"x0\"")
-    assertEquals(expr, null)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
   }
   test("map with identifier") {
     val expr = WorkFlow.run("from x |. q w")
-    assertEquals(expr, null)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+
   }
   test("map without identifier") {
     val expr = WorkFlow.run("from x |. w")
-    assertEquals(expr, null)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
   }
   test("common-queries/operate-on-columns/#recalculate-the-_values-column") {
     val expr = WorkFlow.run("from noaa |$ \"average_temperature\" |@ start \"-30d\" |. mathdiv(mathmul(mathsub(_, 32.0), 5.0), 9.0)")
-    assertEquals(expr, null)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
   }
   test("common-queries/operate-on-columns/#calculate-a-new-column"){
     val expr = WorkFlow.run("from noaa |$ \"average_temperature\" |@ start \"-30d\" |. celsius mathdiv(mathmul(mathsub(_, 32.0), 5.0), 9.0)")
-    assertEquals(expr, null)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
   }
   test("map call with no identifier"){
     val expr = WorkFlow.run("from a |. q ( v )")
-    assertEquals(expr, null)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
   }
 
   test("map call with identifier") {
     val expr = WorkFlow.run("from a |. b q ( v )")
-    assertEquals(expr, null)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
   }
 
   test("map call wtih multiple args") {
     val expr = WorkFlow.run("from a |. q ( a0 , a1 )")
-    assertEquals(expr, null)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
   }
 
   test("literals")  {
     val expr = WorkFlow.run("from a | 12")
-    assertEquals(expr, null)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
   }
 
   test("mapWith") {
     val expr = WorkFlow.run("from a |. q \"b\"")
-    assertEquals(expr, null)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
   }
   test("mapWith with call") {
     val expr = WorkFlow.run("from a |. x q ( v, 32 )")
-    assertEquals(expr, null)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
   }
 }

@@ -18,6 +18,7 @@ lazy val root = project
       "dev.zio" %% "zio-test-magnolia" % zioVersion % "test"
     ),
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.1",
+    libraryDependencies += "com.lihaoyi" %% "pprint" % "0.8.1" % Test,
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
     ,
   )
