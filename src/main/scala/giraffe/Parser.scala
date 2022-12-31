@@ -39,7 +39,7 @@ object GParser extends Parsers {
   }
 
   def stage: Parser[gExpr.gStage] = positioned {
-    (gToken.Pipe() ~ (stageAaa | stageFilterMeasurement | stageFilterField | stageRange | stageMap | stageMapWith)) ^^ { case _ ~ s => s }
+    (gToken.Pipe() ~ (stageAaa | stageFilterMeasurement | stageFilterField | stageRange | stageMap )) ^^ { case _ ~ s => s }
   }
 
   def stageAaa: Parser[gExpr.gStage.aaa] = positioned {
@@ -65,10 +65,6 @@ object GParser extends Parsers {
     val withIdentifier = (gToken.Period() ~> identifier ~ block) ^^ { case i ~ b => gExpr.gStage.map(Some(gExpr.Id(i)), b) }
     val withoutIdentifier = (gToken.Period() ~> block) ^^ (b => gExpr.gStage.map(None, b))
     withIdentifier | withoutIdentifier
-  }
-
-  def stageMapWith: Parser[gExpr.gStage.mapWith] = positioned {
-    (gToken.Plus() ~> identifier ~ block) ^^ { case i ~ b => gExpr.gStage.mapWith(gExpr.Id(i), b)}
   }
 
   private def identifier: Parser[gToken.Id] = positioned {
