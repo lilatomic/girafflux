@@ -44,4 +44,6 @@ object gToken {
   case class ParenL() extends gToken
 
   case class ParenR() extends gToken
+
+  case class Comma() extends gToken
 }

@@ -49,10 +49,12 @@ object GLexer extends RegexParsers {
 
   def parenr = ")" ^^ (_ => ParenR())
 
+  def comma = "," ^^^ Comma()
+
   def tokens: GLexer.Parser[List[gToken]] = {
     phrase(rep1(
-      parenr
-        | parenl
+      comma
+        | parenl | parenr
         | bracketl | bracketr
         | bracel | bracer
         | parenl | parenr

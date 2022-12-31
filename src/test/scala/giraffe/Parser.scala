@@ -35,4 +35,9 @@ class Parser extends munit.FunSuite {
     val expr = WorkFlow.run("from a |. b q ( v )")
     assertEquals(expr, null)
   }
+
+  test("map call wtih multiple args") {
+    val expr = WorkFlow.run("from a |. q ( a0 , a1 )")
+    assertEquals(expr, null)
+  }
 }

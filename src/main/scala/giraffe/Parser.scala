@@ -32,7 +32,7 @@ object GParser extends Parsers {
   }
 
   def call: Parser[gExpr.Call] = {
-    (identifier ~ gToken.ParenL() ~ rep(block) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(gExpr.Id(i), args) }
+    (identifier ~ gToken.ParenL() ~ repsep(block, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(gExpr.Id(i), args) }
   }
 
   def stages: Parser[List[gExpr.gStage]] = {
