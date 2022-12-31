@@ -11,7 +11,7 @@ object WorkFlow {
 
 class Parser extends munit.FunSuite {
   test("anything") {
-    val expr = WorkFlow.run("from x |. \"zzz\" |@ start \"y0\" stop \"y1\" |@ start \"x0\"")
+    val expr = WorkFlow.run("""from x |. "zzz" |@ start "y0" stop "y1" |@ start "x0"""")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
@@ -21,7 +21,7 @@ class Parser extends munit.FunSuite {
     assert(expr.isRight)
   }
   test("common-queries/multiple-fields-in-calculations/") {
-    val expr = WorkFlow.run("from examplebucket |@ start \"1m\" |% \"A\" , \"B\" |. mathmul(a0: _.A, a1: _.B)")
+    val expr = WorkFlow.run("""from examplebucket |@ start "1m" |% "A" , "B" |. mathmul(a0: _.A, a1: _.B)""")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
@@ -31,17 +31,17 @@ class Parser extends munit.FunSuite {
     assert(expr.isRight)
   }
   test("common-queries/operate-on-columns/#find-and-count-unique-values-in-a-column") {
-    val expr = WorkFlow.run("from noaa |@ start \"-30d\" | group() | keep(columns: [\"location\"]) | unique(columns: \"location\")")
+    val expr = WorkFlow.run("""from noaa |@ start "-30d" | group() | keep(columns: ["location"]) | unique(columns: "location")""")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
   test("common-queries/operate-on-columns/#recalculate-the-_values-column") {
-    val expr = WorkFlow.run("from noaa |$ \"average_temperature\" |@ start \"-30d\" |. mathdiv(a0: mathmul(a0: mathsub(a0: _, a1: 32.0), a1: 5.0), a1: 9.0)")
+    val expr = WorkFlow.run("""from noaa |$ "average_temperature" |@ start "-30d" |. mathdiv(a0: mathmul(a0: mathsub(a0: _, a1: 32.0), a1: 5.0), a1: 9.0)""")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
   test("common-queries/operate-on-columns/#calculate-a-new-column"){
-    val expr = WorkFlow.run("from noaa |$ \"average_temperature\" |@ start \"-30d\" |. celsius mathdiv(a0: mathmul(a0: mathsub(a0: _, a1: 32.0), a1: 5.0), a1: 9.0)")
+    val expr = WorkFlow.run("""from noaa |$ "average_temperature" |@ start "-30d" |. celsius mathdiv(a0: mathmul(a0: mathsub(a0: _, a1: 32.0), a1: 5.0), a1: 9.0)""")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
@@ -80,13 +80,13 @@ class Parser extends munit.FunSuite {
     assert(expr.isRight)
   }
   test("literals - array of strings") {
-    val expr = WorkFlow.run("from a |. [\"s\"]")
+    val expr = WorkFlow.run("""from a |. ["s"]""")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
 
   test("mapWith") {
-    val expr = WorkFlow.run("from a |. q \"b\"")
+    val expr = WorkFlow.run("""from a |. q "b"""")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
@@ -96,7 +96,7 @@ class Parser extends munit.FunSuite {
     assert(expr.isRight)
   }
   test("common-queries/iot-common-queries/#calculate-time-in-state") {
-    val expr = WorkFlow.run("import \"contrib/tomhollingworth/events\" from machine |@ start \"2021-08-01T00:00:00Z\" stop \"2021-08-02T00:30:00Z\" |$ \"machinery\" |% \"state\"")
+    val expr = WorkFlow.run("""import "contrib/tomhollingworth/events" from machine |@ start "2021-08-01T00:00:00Z" stop "2021-08-02T00:30:00Z" |$ "machinery" |% "state" | events.duration( unit: "1h", columnName: "duration" ) | group (columns: ["_value", "_start", "_stop", "station_id"]) | sum(column: "duration") | pivot(rowKey: ["_stop"], columnKey: ["_value"], valueColumn: "duration") """)
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
