@@ -18,6 +18,8 @@ object gExpr {
 
   case class gFunction(args: List[Id], body: gExpr) extends gExpr
 
+  case class Call(callee: gExpr, args: List[gExpr]) extends gExpr
+
   sealed trait gBuiltin extends gExpr
 
   sealed trait gLit extends gExpr

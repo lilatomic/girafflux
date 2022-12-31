@@ -55,6 +55,7 @@ object GLexer extends RegexParsers {
         | parenl
         | bracketl | bracketr
         | bracel | bracer
+        | parenl | parenr
         | question | percent | dollar | hash | atpersat | pipe
         | from | period
         | literal

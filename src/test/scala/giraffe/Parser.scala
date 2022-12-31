@@ -23,7 +23,16 @@ class Parser extends munit.FunSuite {
     assertEquals(expr, null)
   }
   test("common-queries/operate-on-columns/#calculate-a-new-column"){
-    val expr = WorkFlow.run("from noaa |$ \"average_temperature\" |@ start \"-30d\" |. q ")
+    val expr = WorkFlow.run("from noaa |$ \"average_temperature\" |@ start \"-30d\" |. q() ")
+    assertEquals(expr, null)
+  }
+  test("map call with no identifier"){
+    val expr = WorkFlow.run("from a |. q ( v )")
+    assertEquals(expr, null)
+  }
+
+  test("map call with identifier") {
+    val expr = WorkFlow.run("from a |. b q ( v )")
     assertEquals(expr, null)
   }
 }

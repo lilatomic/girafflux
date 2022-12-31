@@ -18,6 +18,7 @@ object GParser extends Parsers {
 
   def program: Parser[gExpr] = positioned {
     phrase(query)
+//      phrase(call)
   }
 
   def query: Parser[gExpr.Query] = positioned {
@@ -25,7 +26,13 @@ object GParser extends Parsers {
   }
 
   def block: Parser[gExpr.Block] = {
-    identifier ^^ { case i => gExpr.Block.lift(gExpr.Id(i)) }
+    val id = identifier ^^ { case i => gExpr.Block.lift(gExpr.Id(i)) }
+    val _call = call ^^ { case i => gExpr.Block.lift(i) }
+    (_call | id)
+  }
+
+  def call: Parser[gExpr.Call] = {
+    (identifier ~ gToken.ParenL() ~ rep(block) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(gExpr.Id(i), args) }
   }
 
   def stages: Parser[List[gExpr.gStage]] = {
