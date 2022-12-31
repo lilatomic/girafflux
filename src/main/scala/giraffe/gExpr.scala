@@ -46,7 +46,7 @@ object gExpr {
 
     case class map(id: Id | ImplicitRef, expr: gExpr) extends gStage
 
-    case class mapMany(many: gLit.Record) extends gStage
+    case class mapMany(id: Option[ImplicitRef], many: gLit.Record) extends gStage
 
     case class filter(fn: gFunction) extends gStage
 

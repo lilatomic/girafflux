@@ -85,7 +85,9 @@ object GParser extends Parsers {
   }
 
   def stageMapMany: Parser[gExpr.gStage.mapMany] = positioned {
-    (gToken.Period() ~> litRecord) ^^ (b => gExpr.gStage.mapMany(b))
+    val replacing = (gToken.Period() ~> implicitRef ~ litRecord) ^^ { case i ~ b => gExpr.gStage.mapMany(Some(i), b)}
+    val adding = (gToken.Period() ~> litRecord) ^^ (b => gExpr.gStage.mapMany(None, b))
+    replacing | adding
   }
 
   private def identifier: Parser[gExpr.Id] = positioned {
