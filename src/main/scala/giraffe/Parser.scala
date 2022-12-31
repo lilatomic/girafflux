@@ -39,11 +39,11 @@ object GParser extends Parsers {
   }
 
   def stage: Parser[gExpr.gStage] = positioned {
-    (gToken.Pipe() ~ (stageAaa | stageFilterMeasurement | stageFilterField | stageRange | stageMap )) ^^ { case _ ~ s => s }
+    (gToken.Pipe() ~ (stageStreamMap | stageFilterMeasurement | stageFilterField | stageRange | stageMap )) ^^ { case _ ~ s => s }
   }
 
-  def stageAaa: Parser[gExpr.gStage.aaa] = positioned {
-    (lit) ^^ (lit => gExpr.gStage.aaa(lit))
+  def stageStreamMap: Parser[gExpr.gStage.streamMap] = positioned {
+    (lit) ^^ (lit => gExpr.gStage.streamMap(lit))
   }
 
   def stageRange: Parser[gExpr.gStage.range] = positioned {

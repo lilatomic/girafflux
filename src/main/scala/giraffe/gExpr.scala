@@ -41,7 +41,7 @@ object gExpr {
 
     case class filterField(_field: gExpr) extends gStage
 
-    case class aaa(inv: gLit) extends gStage
+    case class streamMap(inv: gLit) extends gStage
   }
 
   object gBuiltin {
