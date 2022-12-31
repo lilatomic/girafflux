@@ -9,7 +9,9 @@ object GLexer extends RegexParsers {
   override def skipWhitespace: Boolean = true
 
   def literal: Parser[Lit] = {
-    "\"(?:[^\"\\\\]|\\\\.)*\"".r ^^ { s => Lit(s.substring(1, s.length - 1)) }
+    val litStr = "\"(?:[^\"\\\\]|\\\\.)*\"".r ^^ { s => LitStr(s.substring(1, s.length - 1)) }
+    val litFloat = "\\p{Nd}+".r ^^ {s => LitFloat(s)}
+    litStr | litFloat
   }
 
   def identifier: Parser[Id] = {

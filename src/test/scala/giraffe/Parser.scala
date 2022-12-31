@@ -40,4 +40,9 @@ class Parser extends munit.FunSuite {
     val expr = WorkFlow.run("from a |. q ( a0 , a1 )")
     assertEquals(expr, null)
   }
+
+  test("literals")  {
+    val expr = WorkFlow.run("from a | 12")
+    assertEquals(expr, null)
+  }
 }

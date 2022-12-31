@@ -15,10 +15,8 @@ object GParser extends Parsers {
 
   // parsers
 
-
   def program: Parser[gExpr] = positioned {
     phrase(query)
-//      phrase(call)
   }
 
   def query: Parser[gExpr.Query] = positioned {
@@ -44,22 +42,22 @@ object GParser extends Parsers {
   }
 
   def stageAaa: Parser[gExpr.gStage.aaa] = positioned {
-    (lit) ^^ (lit => gExpr.gStage.aaa(lit.s))
+    (lit) ^^ (lit => gExpr.gStage.aaa(lit))
   }
 
   def stageRange: Parser[gExpr.gStage.range] = positioned {
     (gToken.Atpersat() ~> gToken.Id("start") ~> lit ~ opt(gToken.Id("stop") ~> lit)) ^^ {
-      case start ~ Some(stop) => gExpr.gStage.range(gExpr.gLit.Duration(start), gExpr.gLit.Duration(stop))
-      case start ~ None => gExpr.gStage.range(gExpr.gLit.Duration(start))
+      case start ~ Some(stop) => gExpr.gStage.range(start, stop)
+      case start ~ None => gExpr.gStage.range(start)
     }
   }
 
   def stageFilterMeasurement: Parser[gExpr.gStage.filterMeasurement] = positioned {
-    (gToken.Dollar() ~> lit) ^^ (i => gExpr.gStage.filterMeasurement(_measurement = gExpr.gLit.Duration(i)))
+    (gToken.Dollar() ~> lit) ^^ (i => gExpr.gStage.filterMeasurement(_measurement = i))
   }
 
   def stageFilterField: Parser[gExpr.gStage.filterField] = positioned {
-    (gToken.Percent() ~> lit) ^^ (i => gExpr.gStage.filterField(_field = gExpr.gLit.Duration(i)))
+    (gToken.Percent() ~> lit) ^^ (i => gExpr.gStage.filterField(_field = i))
   }
 
   def stageMap: Parser[gExpr.gStage.map] = positioned {
@@ -72,8 +70,9 @@ object GParser extends Parsers {
     accept("identifier", { case id@gToken.Id(name) => id })
   }
 
-  def lit: Parser[gToken.Lit] = positioned {
-    accept("string literal", { case lit@gToken.Lit(s) => lit })
+  def lit: Parser[gExpr.gLit] = positioned {
+    accept("string literal", { case s: gToken.LitStr => gExpr.gLit.Str(s) })
+    | accept("float literal", { case f: gToken.LitFloat => gExpr.gLit.Float(f) })
   }
 
 }

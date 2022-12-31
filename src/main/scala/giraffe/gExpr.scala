@@ -40,9 +40,7 @@ object gExpr {
 
     case class filterField(_field: gExpr) extends gStage
 
-    case class aaa(inv: String) extends gStage
-
-    case class bbb(inv: String) extends gStage
+    case class aaa(inv: gLit) extends gStage
   }
 
   object gBuiltin {
@@ -52,5 +50,8 @@ object gExpr {
   object gLit {
     case class Duration(tok: gToken) extends gLit
 
+    case class Str(tok: gToken.LitStr) extends gLit
+
+    case class Float(tok: gToken.LitFloat) extends gLit
   }
 }

@@ -11,7 +11,9 @@ object gToken {
   case class Underscore() extends gToken
 
   // Literals
-  case class Lit(s: String) extends gToken
+  sealed trait Lit extends  gToken
+  case class LitStr(s: String) extends Lit
+  case class LitFloat(f: String) extends Lit
 
   // Keywords
 
