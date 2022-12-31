@@ -15,8 +15,16 @@ object GParser extends Parsers {
 
   // parsers
 
-  def program: Parser[gExpr] = positioned {
-    phrase(query)
+  def program: Parser[gExpr] = {
+    phrase(script)
+  }
+
+  def script: Parser[gExpr.Script] = positioned {
+    (rep(moduleImport) ~ rep(query)) ^^ {case is ~ qs => gExpr.Script(is, qs) }
+  }
+
+  def moduleImport: Parser[gExpr.ModuleImport] = positioned {
+    (gToken.ModuleImport() ~> litStr) ^^ { case s => gExpr.ModuleImport(s) }
   }
 
   def query: Parser[gExpr.Query] = positioned {
@@ -80,12 +88,16 @@ object GParser extends Parsers {
     accept("identifier", { case id : gToken.Id => gExpr.Id(id) })
   }
 
+  private def litStr = {
+    accept("string literal", { case s: gToken.LitStr => gExpr.gLit.Str(s) })
+  }
+
   def litArray: Parser[gExpr.gLit.Array] = positioned {
     gToken.BracketL() ~> repsep(block, gToken.Comma()) <~ gToken.BracketR() ^^ (items => gExpr.gLit.Array(items))
   }
 
   def lit: Parser[gExpr.gLit] = positioned {
-    accept("string literal", { case s: gToken.LitStr => gExpr.gLit.Str(s) })
+    litStr
     | accept("float literal", { case f: gToken.LitFloat => gExpr.gLit.Float(f) })
     | accept("int literal", { case i: gToken.LitInt => gExpr.gLit.Int(i) })
     | litArray

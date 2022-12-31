@@ -1,10 +1,15 @@
 package giraffe
 
+import giraffe.gToken.LitStr
+import zio.Config.Optional
+
 import scala.util.parsing.input.Positional
 
 sealed trait gExpr extends Positional
 
 object gExpr {
+
+  case class Script(imports: List[ModuleImport], queries: List[Query]) extends gExpr
 
   case class Block(expr: gExpr) extends gExpr
 
@@ -15,6 +20,8 @@ object gExpr {
   case class Query(from: From, Ops: List[gStage]) extends gExpr
 
   case class From(bucket: Id) extends gExpr
+
+  case class ModuleImport(module: gLit.Str, as: Option[gLit.Str] = None) extends gExpr
 
   case class gFunction(args: List[Id], body: gExpr) extends gExpr
 

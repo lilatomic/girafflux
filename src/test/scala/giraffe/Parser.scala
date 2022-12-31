@@ -95,4 +95,9 @@ class Parser extends munit.FunSuite {
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
+  test("common-queries/iot-common-queries/#calculate-time-in-state") {
+    val expr = WorkFlow.run("import \"contrib/tomhollingworth/events\" from machine |@ start \"2021-08-01T00:00:00Z\" stop \"2021-08-02T00:30:00Z\" |$ \"machinery\" |% \"state\"")
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
 }

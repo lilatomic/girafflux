@@ -20,6 +20,8 @@ object gToken {
 
   case class From() extends gToken
 
+  case class ModuleImport() extends gToken
+
   case class Period() extends gToken
 
   // Stages

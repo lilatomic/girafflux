@@ -23,6 +23,8 @@ object GLexer extends RegexParsers {
 
   def from = "from" ^^ (_ => From())
 
+  def moduleImport = "import" ^^^ ModuleImport()
+
   // punctiation keywords
   def underscore = "_" ^^^ Underscore()
 
@@ -65,7 +67,7 @@ object GLexer extends RegexParsers {
         | bracketl | bracketr
         | bracel | bracer
         | plus | question | percent | dollar | hash | atpersat | pipe
-        | from | period
+        | from | moduleImport | period
         | literal
         | identifier
         | underscore
