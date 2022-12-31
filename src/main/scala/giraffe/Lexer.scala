@@ -24,7 +24,7 @@ object GLexer extends RegexParsers {
   def from = "from" ^^ (_ => From())
 
   // punctiation keywords
-  def underscore = "_" ^^ (_ => Underscore())
+  def underscore = "_" ^^^ Underscore()
 
   def period = "." ^^^ Period()
 

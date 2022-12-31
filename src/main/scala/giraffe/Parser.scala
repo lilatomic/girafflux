@@ -31,7 +31,7 @@ object GParser extends Parsers {
   }
 
   def call: Parser[gExpr.Call] = positioned {
-    (identifier ~ gToken.ParenL() ~ repsep(block, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(gExpr.Id(i), args) }
+    (identifier ~ gToken.ParenL() ~ repsep(block | implicitRef, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(gExpr.Id(i), args) }
   }
 
   def stages: Parser[List[gExpr.gStage]] = {
@@ -79,6 +79,10 @@ object GParser extends Parsers {
     accept("string literal", { case s: gToken.LitStr => gExpr.gLit.Str(s) })
     | accept("float literal", { case f: gToken.LitFloat => gExpr.gLit.Float(f) })
     | accept("int literal", { case i: gToken.LitInt => gExpr.gLit.Int(i) })
+  }
+
+  def implicitRef: Parser[gExpr.ImplicitRef] = positioned {
+    gToken.Underscore() ^^^ gExpr.ImplicitRef()
   }
 
 }

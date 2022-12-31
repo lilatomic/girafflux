@@ -26,6 +26,7 @@ object gExpr {
 
   case class Id(tok: gToken) extends gExpr
 
+  case class ImplicitRef() extends gExpr
 
   sealed trait gStage extends gExpr
 
