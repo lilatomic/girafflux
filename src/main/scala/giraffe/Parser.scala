@@ -20,22 +20,23 @@ object GParser extends Parsers {
   }
 
   def query: Parser[gExpr.Query] = positioned {
-    (gToken.From() ~ identifier ~ stages) ^^ { case _ ~ bucket ~ stages => gExpr.Query(gExpr.From(gExpr.Id(bucket)), stages) }
+    (gToken.From() ~ identifier ~ stages) ^^ { case _ ~ bucket ~ stages => gExpr.Query(gExpr.From(bucket), stages) }
   }
 
   def block: Parser[gExpr.Block] = positioned {
-    val _call = call ^^ { case i => gExpr.Block.lift(i) }
-    val _id = identifier ^^ { case i => gExpr.Block.lift(gExpr.Id(i)) }
-    val _literal = lit ^^ { case i => gExpr.Block.lift(i)}
-    (_call | _id | _literal)
+    (call | index | identifier | lit) ^^ { case i => gExpr.Block.lift(i)}
   }
 
   def call: Parser[gExpr.Call] = positioned {
-    (identifier ~ gToken.ParenL() ~ repsep(arg, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(gExpr.Id(i), args) }
+    (identifier ~ gToken.ParenL() ~ repsep(arg, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(i, args) }
   }
 
   def arg: Parser[gExpr.Arg] =  {
-    (identifier ~ gToken.Colon() ~ (block | implicitRef) ) ^^ { case i ~ _ ~ v => gExpr.Arg(gExpr.Id(i), v)}
+    (identifier ~ gToken.Colon() ~ (block | implicitRef) ) ^^ { case i ~ _ ~ v => gExpr.Arg(i, v)}
+  }
+
+  def index: Parser[gExpr.Index] = {
+    ((identifier | implicitRef) ~ gToken.Period() ~ block) ^^ { case obj ~ _ ~ value => gExpr.Index(obj, value)}
   }
 
   def stages: Parser[List[gExpr.gStage]] = {
@@ -43,7 +44,7 @@ object GParser extends Parsers {
   }
 
   def stage: Parser[gExpr.gStage] = positioned {
-    (gToken.Pipe() ~ (stageStreamMap | stageFilterMeasurement | stageFilterField | stageRange | stageMap )) ^^ { case _ ~ s => s }
+    (gToken.Pipe() ~ (stageStreamMap | stageFilterMeasurement | stageFilterFieldMany | stageFilterField | stageRange | stageMap )) ^^ { case _ ~ s => s }
   }
 
   def stageStreamMap: Parser[gExpr.gStage.streamMap] = positioned {
@@ -65,14 +66,18 @@ object GParser extends Parsers {
     (gToken.Percent() ~> lit) ^^ (i => gExpr.gStage.filterField(_field = i))
   }
 
+  def stageFilterFieldMany: Parser[gExpr.gStage.filterFieldMany] = positioned {
+    (gToken.Percent() ~> repsep(lit, gToken.Comma())) ^^ (is => gExpr.gStage.filterFieldMany(_fields = is))
+  }
+
   def stageMap: Parser[gExpr.gStage.map] = positioned {
-    val withIdentifier = (gToken.Period() ~> identifier ~ block) ^^ { case i ~ b => gExpr.gStage.map(Some(gExpr.Id(i)), b) }
+    val withIdentifier = (gToken.Period() ~> identifier ~ block) ^^ { case i ~ b => gExpr.gStage.map(Some(i), b) }
     val withoutIdentifier = (gToken.Period() ~> block) ^^ (b => gExpr.gStage.map(None, b))
     withIdentifier | withoutIdentifier
   }
 
-  private def identifier: Parser[gToken.Id] = positioned {
-    accept("identifier", { case id@gToken.Id(name) => id })
+  private def identifier: Parser[gExpr.Id] = positioned {
+    accept("identifier", { case id : gToken.Id => gExpr.Id(id) })
   }
 
   def litArray: Parser[gExpr.gLit.Array] = positioned {

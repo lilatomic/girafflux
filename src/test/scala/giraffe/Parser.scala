@@ -19,7 +19,11 @@ class Parser extends munit.FunSuite {
     val expr = WorkFlow.run("from x |. q w")
     pprint.pprintln(expr)
     assert(expr.isRight)
-
+  }
+  test("common-queries/multiple-fields-in-calculations/") {
+    val expr = WorkFlow.run("from examplebucket |@ start \"1m\" |% \"A\" , \"B\" |. mathmul(a0: _.A, a1: _.B)")
+    pprint.pprintln(expr)
+    assert(expr.isRight)
   }
   test("map without identifier") {
     val expr = WorkFlow.run("from x |. w")

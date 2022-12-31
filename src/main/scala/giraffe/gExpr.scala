@@ -20,7 +20,9 @@ object gExpr {
 
   case class Call(callee: gExpr, args: List[Arg]) extends gExpr
 
-  case class Arg(name: Id, value: gExpr)
+  case class Arg(name: Id, value: gExpr) extends gExpr
+
+  case class Index(obj: gExpr, value: gExpr) extends gExpr
 
   sealed trait gBuiltin extends gExpr
 
@@ -42,6 +44,8 @@ object gExpr {
     case class filterMeasurement(_measurement: gExpr) extends gStage
 
     case class filterField(_field: gExpr) extends gStage
+
+    case class filterFieldMany(_fields: List[gExpr]) extends gStage
 
     case class streamMap(call: Call) extends gStage
   }
