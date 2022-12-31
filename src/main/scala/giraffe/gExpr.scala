@@ -34,6 +34,8 @@ object gExpr {
 
     case class map(id: Option[Id], expr: gExpr) extends gStage
 
+    case class mapWith(id: Id, expr: gExpr) extends gStage
+
     case class filter(fn: gFunction) extends gStage
 
     case class filterMeasurement(_measurement: gExpr) extends gStage

@@ -23,13 +23,14 @@ object GParser extends Parsers {
     (gToken.From() ~ identifier ~ stages) ^^ { case _ ~ bucket ~ stages => gExpr.Query(gExpr.From(gExpr.Id(bucket)), stages) }
   }
 
-  def block: Parser[gExpr.Block] = {
-    val id = identifier ^^ { case i => gExpr.Block.lift(gExpr.Id(i)) }
+  def block: Parser[gExpr.Block] = positioned {
     val _call = call ^^ { case i => gExpr.Block.lift(i) }
-    (_call | id)
+    val _id = identifier ^^ { case i => gExpr.Block.lift(gExpr.Id(i)) }
+    val _literal = lit ^^ { case i => gExpr.Block.lift(i)}
+    (_call | _id | _literal)
   }
 
-  def call: Parser[gExpr.Call] = {
+  def call: Parser[gExpr.Call] = positioned {
     (identifier ~ gToken.ParenL() ~ repsep(block, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(gExpr.Id(i), args) }
   }
 
@@ -38,7 +39,7 @@ object GParser extends Parsers {
   }
 
   def stage: Parser[gExpr.gStage] = positioned {
-    (gToken.Pipe() ~ (stageAaa | stageFilterMeasurement | stageFilterField | stageRange | stageMap)) ^^ { case _ ~ s => s }
+    (gToken.Pipe() ~ (stageAaa | stageFilterMeasurement | stageFilterField | stageRange | stageMap | stageMapWith)) ^^ { case _ ~ s => s }
   }
 
   def stageAaa: Parser[gExpr.gStage.aaa] = positioned {
@@ -64,6 +65,10 @@ object GParser extends Parsers {
     val withIdentifier = (gToken.Period() ~> identifier ~ block) ^^ { case i ~ b => gExpr.gStage.map(Some(gExpr.Id(i)), b) }
     val withoutIdentifier = (gToken.Period() ~> block) ^^ (b => gExpr.gStage.map(None, b))
     withIdentifier | withoutIdentifier
+  }
+
+  def stageMapWith: Parser[gExpr.gStage.mapWith] = positioned {
+    (gToken.Plus() ~> identifier ~ block) ^^ { case i ~ b => gExpr.gStage.mapWith(gExpr.Id(i), b)}
   }
 
   private def identifier: Parser[gToken.Id] = positioned {

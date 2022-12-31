@@ -39,6 +39,8 @@ object GLexer extends RegexParsers {
 
   def question = "?" ^^ (_ => Question())
 
+  def plus = "+" ^^^ Plus()
+
   def bracel = "{" ^^ (_ => BraceL())
 
   def bracer = "}" ^^ (_ => BraceR())
@@ -59,8 +61,7 @@ object GLexer extends RegexParsers {
         | parenl | parenr
         | bracketl | bracketr
         | bracel | bracer
-        | parenl | parenr
-        | question | percent | dollar | hash | atpersat | pipe
+        | plus | question | percent | dollar | hash | atpersat | pipe
         | from | period
         | literal
         | identifier
