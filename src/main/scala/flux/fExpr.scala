@@ -13,7 +13,7 @@ object fExpr {
 
   case class |>(inv: Call) extends fExpr
 
-  case class Call(op: fToken, args: List[Arg]) extends fExpr
+  case class Call(op: fExpr, args: List[Arg]) extends fExpr // TODO: maybe tighten
 
   case class Arg(name: fToken, value: fExpr) extends fExpr
 
