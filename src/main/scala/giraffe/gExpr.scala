@@ -19,7 +19,7 @@ object gExpr {
     def lift(expr: blocklike): Block = Block(List(expr))
   }
 
-  case class Query(from: From, Ops: List[gStage]) extends gExpr
+  case class Query(from: From, ops: List[gStage]) extends gExpr
 
   case class From(bucket: Id) extends gExpr
 
@@ -27,9 +27,9 @@ object gExpr {
 
   case class gFunction(args: List[Id], body: gExpr) extends gExpr
 
-  case class Call(callee: gExpr, args: List[Arg]) extends gExpr
+  case class Call(callee: blocklike, args: List[Arg]) extends gExpr
 
-  case class Arg(name: Id, value: gExpr) extends gExpr
+  case class Arg(name: Id, value: blocklike) extends gExpr
 
   case class Index(obj: gExpr, value: gExpr) extends gExpr
 
@@ -46,7 +46,7 @@ object gExpr {
   sealed trait gStage extends gExpr
 
   object gStage {
-    case class range(start: gExpr, stop: gExpr = gBuiltin.Now) extends gStage
+    case class range(start: blocklike, stop: blocklike | gBuiltin.Now.type = gBuiltin.Now) extends gStage
 
     case class map(id: Id | ImplicitRef, expr: gExpr) extends gStage
 
@@ -60,7 +60,7 @@ object gExpr {
 
     case class filterFieldMany(_fields: List[gExpr]) extends gStage
 
-    case class streamMap(block: Block) extends gStage
+    case class streamMap(block: blocklike) extends gStage
   }
 
   object gBuiltin {
@@ -76,7 +76,7 @@ object gExpr {
 
     case class Int(tok: gToken.LitInt) extends gLit
 
-    case class Array(items: List[gExpr]) extends gLit
+    case class Array(items: List[blocklike]) extends gLit
 
     case class Record(items: Map[Id, gExpr]) extends gLit
   }
