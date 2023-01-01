@@ -24,7 +24,7 @@ object GParser extends Parsers {
   }
 
   def moduleImport: Parser[gExpr.ModuleImport] = positioned {
-    (gToken.ModuleImport() ~> litStr) ^^ { case s => gExpr.ModuleImport(s) }
+    (gToken.ModuleImport() ~> litStr) ^^ (s => gExpr.ModuleImport(s))
   }
 
   def query: Parser[gExpr.Query] = positioned {
@@ -32,11 +32,11 @@ object GParser extends Parsers {
   }
 
   private def blockMany = {
-    gToken.BraceL() ~> rep(block) <~ gToken.BraceR() ^^ { case exprs => gExpr.Block(exprs) }
+    gToken.BraceL() ~> rep(blocklike) <~ gToken.BraceR() ^^ (exprs => gExpr.Block(exprs))
   }
 
-  def block: Parser[gExpr.Block] = positioned {
-    ((call | assign | index | identifier | lit) ^^ { case i: gExpr.blocklike => gExpr.Block.lift(i)})
+  def blocklike: Parser[gExpr.blocklike] = positioned {
+    ((call | assign | index | identifier | lit) ^^ { case i: gExpr.blocklike => i})
       | blockMany
   }
 
@@ -46,7 +46,7 @@ object GParser extends Parsers {
   }
 
   def arg: Parser[gExpr.Arg] =  {
-    (identifier ~ gToken.Colon() ~ block) ^^ { case i ~ _ ~ v => gExpr.Arg(i, v)}
+    (identifier ~ gToken.Colon() ~ blocklike) ^^ { case i ~ _ ~ v => gExpr.Arg(i, v)}
     | (identifier ~ gToken.Colon() ~ implicitRef) ^^ { case i ~ _ ~ v => gExpr.Arg(i, v)}
   }
 
@@ -86,8 +86,8 @@ object GParser extends Parsers {
   }
 
   def stageMap: Parser[gExpr.gStage.map] = positioned {
-    val withIdentifier = (gToken.Period() ~> identifier ~ block) ^^ { case i ~ b => gExpr.gStage.map(i, b) }
-    val withoutIdentifier = (gToken.Period() ~> implicitRef ~ block) ^^ { case i ~ b => gExpr.gStage.map(i, b) }
+    val withIdentifier = (gToken.Period() ~> identifier ~ blocklike) ^^ { case i ~ b => gExpr.gStage.map(i, b) }
+    val withoutIdentifier = (gToken.Period() ~> implicitRef ~ blocklike) ^^ { case i ~ b => gExpr.gStage.map(i, b) }
     withIdentifier | withoutIdentifier
   }
 
@@ -108,11 +108,11 @@ object GParser extends Parsers {
   }
 
   def litArray: Parser[gExpr.gLit.Array] = positioned {
-    gToken.BracketL() ~> repsep(block, gToken.Comma()) <~ gToken.BracketR() ^^ (items => gExpr.gLit.Array(items))
+    gToken.BracketL() ~> repsep(blocklike, gToken.Comma()) <~ gToken.BracketR() ^^ (items => gExpr.gLit.Array(items))
   }
 
   def litRecord: Parser[gExpr.gLit.Record] = positioned {
-    (gToken.BraceL() ~> repsep(identifier ~ gToken.Colon() ~ block, gToken.Comma()) <~ gToken.BraceR()) ^^ (kvpairs => gExpr.gLit.Record(kvpairs.map { case k ~ _ ~ v => k -> v }.toMap))
+    (gToken.BraceL() ~> repsep(identifier ~ gToken.Colon() ~ blocklike, gToken.Comma()) <~ gToken.BraceR()) ^^ (kvpairs => gExpr.gLit.Record(kvpairs.map { case k ~ _ ~ v => k -> v }.toMap))
   }
 
   def lit: Parser[gExpr.gLit] = positioned {
@@ -128,7 +128,7 @@ object GParser extends Parsers {
   }
 
   def assign: Parser[gExpr.Assign] = positioned {
-    ((index | identifier) ~ gToken.Equal() ~ block) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value)}
+    ((index | identifier) ~ gToken.Equal() ~ blocklike) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value)}
   }
 
 }
