@@ -6,7 +6,7 @@ import scala.util.parsing.input.{NoPosition, Position, Reader}
 object GParser extends Parsers {
   override type Elem = gToken
 
-  def parse(tokens: Seq[gToken]) = {
+  def parse(tokens: Seq[gToken]): Either[gParseError, gExpr.Script] = {
     val reader = new gTokenReader(tokens)
     program(reader) match
       case NoSuccess(msg, next) => Left(gParseError(Location(next.pos.line, next.pos.column), msg))
@@ -15,7 +15,7 @@ object GParser extends Parsers {
 
   // parsers
 
-  def program: Parser[gExpr] = {
+  def program: Parser[gExpr.Script] = {
     phrase(script)
   }
 
