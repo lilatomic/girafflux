@@ -59,7 +59,7 @@ object Printer {
       case fExpr.From(bucket) => List(s"from(bucket: \"${l(bucket)}\")")
       case fExpr.|>(inv) => prependToFirst("|> ", print(inv))
       case fExpr.Call(op, args) =>
-        parenthesised(s"${l(op)}(", args.map(print(_, indent)), ",", ")")
+        parenthesised(s"${print(op).mkString("\n")}(", args.map(print(_, indent)), ",", ")")
       case fExpr.Arg(name, value) => prependToFirst(s"${l(name)}: ", print(value, indent))
       case fExpr.Identifier(tok) => List(l(tok))
       case v: fExpr.Function => printFunction(v, indent)
