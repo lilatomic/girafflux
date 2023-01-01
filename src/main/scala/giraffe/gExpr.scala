@@ -37,7 +37,7 @@ object gExpr {
 
   sealed trait gLit extends gExpr
 
-  case class Id(tok: gToken) extends gExpr
+  case class Id(tok: gToken.Id) extends gExpr
 
   case class ImplicitRef() extends gExpr
 

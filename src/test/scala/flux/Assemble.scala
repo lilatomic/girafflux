@@ -19,7 +19,7 @@ class Assemble extends munit.FunSuite {
     val expr = Query(
       From(fToken(bucketName)),
       List(
-        |>(Call(fToken("range"), args = List(
+        |>(Call(Identifier(fToken("range")), args = List(
           Arg(fToken("start"), fLit.Duration(fToken("-1h")))
         )))
       )
@@ -33,10 +33,10 @@ class Assemble extends munit.FunSuite {
     val expr = Query(
       From(fToken(bucketName)),
       List(
-        |>(Call(fToken("range"), args = List(
+        |>(Call(Identifier(fToken("range")), args = List(
           Arg(fToken("start"), fLit.Duration(fToken("-1h")))
         ))),
-        |>(Call(fToken("filter"), args = List(
+        |>(Call(Identifier(fToken("filter")), args = List(
           Arg(
             fToken("fn"),
             Function(
