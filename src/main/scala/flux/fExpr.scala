@@ -6,6 +6,9 @@ import scala.quoted.Expr
 sealed trait fExpr {}
 
 object fExpr {
+  case class Script(imports: List[ModuleImport], queries: List[Query]) extends fExpr
+
+  case class ModuleImport(module: fToken) extends fExpr
 
   case class Query(from: From, ops: List[|>]) extends fExpr
 
@@ -26,6 +29,8 @@ object fExpr {
   case class Op2(op: fToken, a0: fExpr, a1: fExpr) extends fExpr
 
   case class Index(obj: fExpr, value: fExpr) extends fExpr
+
+  case class Block(exprs: List[fExpr]) extends fExpr
 }
 
 sealed trait fLit extends fExpr
