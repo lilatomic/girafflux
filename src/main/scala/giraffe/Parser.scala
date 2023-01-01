@@ -36,16 +36,18 @@ object GParser extends Parsers {
   }
 
   def block: Parser[gExpr.Block] = positioned {
-    ((call | assign | index | identifier | lit) ^^ { case i => gExpr.Block.lift(i)})
+    ((call | assign | index | identifier | lit) ^^ { case i: gExpr.blocklike => gExpr.Block.lift(i)})
       | blockMany
   }
 
   def call: Parser[gExpr.Call] = positioned {
-    ((index | identifier) ~ gToken.ParenL() ~ repsep(arg, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(i, args) }
+    (index ~ gToken.ParenL() ~ repsep(arg, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(i, args) }
+    | (identifier ~ gToken.ParenL() ~ repsep(arg, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(i, args) }
   }
 
   def arg: Parser[gExpr.Arg] =  {
-    (identifier ~ gToken.Colon() ~ (block | implicitRef) ) ^^ { case i ~ _ ~ v => gExpr.Arg(i, v)}
+    (identifier ~ gToken.Colon() ~ block) ^^ { case i ~ _ ~ v => gExpr.Arg(i, v)}
+    | (identifier ~ gToken.Colon() ~ implicitRef) ^^ { case i ~ _ ~ v => gExpr.Arg(i, v)}
   }
 
   def index: Parser[gExpr.Index] = {
@@ -66,8 +68,8 @@ object GParser extends Parsers {
 
   def stageRange: Parser[gExpr.gStage.range] = positioned {
     (gToken.Atpersat() ~> gToken.Id("start") ~> lit ~ opt(gToken.Id("stop") ~> lit)) ^^ {
-      case start ~ Some(stop) => gExpr.gStage.range(start, stop)
-      case start ~ None => gExpr.gStage.range(start)
+      case start ~ Some(stop) => gExpr.gStage.range(gExpr.Block.lift(start), gExpr.Block.lift(stop))
+      case start ~ None => gExpr.gStage.range(gExpr.Block.lift(start))
     }
   }
 
