@@ -11,10 +11,12 @@ object gExpr {
 
   case class Script(imports: List[ModuleImport], queries: List[Query]) extends gExpr
 
-  case class Block(exprs: List[gExpr]) extends gExpr
+  case class Block(exprs: List[blocklike]) extends gExpr
+
+  type blocklike = Call | Assign | Index | Id | gLit | Block | ImplicitRef // TODO: Use in more places
 
   object Block {
-    def lift(expr: gExpr): Block = Block(List(expr))
+    def lift(expr: blocklike): Block = Block(List(expr))
   }
 
   case class Query(from: From, Ops: List[gStage]) extends gExpr
