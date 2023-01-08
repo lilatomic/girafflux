@@ -8,7 +8,7 @@ sealed trait fExpr {}
 object fExpr {
   case class Script(imports: List[ModuleImport], queries: List[Query]) extends fExpr
 
-  case class ModuleImport(module: fToken) extends fExpr
+  case class ModuleImport(module: fLit.Str) extends fExpr
 
   case class Query(from: From, ops: List[|>]) extends fExpr
 

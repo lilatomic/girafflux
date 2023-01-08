@@ -76,7 +76,9 @@ object Printer {
           queries.flatMap(q => print(q, indent)),
           sep = "\n"
         )
-      case fExpr.ModuleImport(module) => List(s"import ${l(module)}")
+      case fExpr.ModuleImport(module) =>
+        prependToFirst("import ", print(module))
+//        List(s"import ${l(module.tok)}")
       case fExpr.Block(exprs) => coalesceSingle(exprs.flatMap(print(_, indent)), start = Some("{"), end = Some("}"))
       case fExpr.Assign(obj, value) => coalesceSingles(
         print(obj), print(value), sep = "="

@@ -31,7 +31,7 @@ object Transformer {
 
     fLit.Duration(fToken(s"${value}${g.tok.unit.u}"))
 
-  def g2f(g: gExpr.ModuleImport): fExpr.ModuleImport = fExpr.ModuleImport(g2f(g.module).tok)
+  def g2f(g: gExpr.ModuleImport): fExpr.ModuleImport = fExpr.ModuleImport(g2f(g.module))
 
   def g2f(g: gExpr.Query): fExpr.Query = fExpr.Query(g2f(g.from), g.ops.map(g2f))
 
