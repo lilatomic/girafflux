@@ -135,4 +135,15 @@ class Parser extends munit.FunSuite {
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
+
+  test("index") {
+    val expr = WorkFlow.run("""from a |._ z.x """)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
+  test("index chain") {
+    val expr = WorkFlow.run("""from a |._ z.x.c.v.b """)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
 }

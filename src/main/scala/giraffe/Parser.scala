@@ -51,7 +51,13 @@ object GParser extends Parsers {
   }
 
   def index: Parser[gExpr.Index] = {
-    ((identifier | implicitRef) ~ gToken.Period() ~ identifier) ^^ { case obj ~ _ ~ value => gExpr.Index(obj, value)}
+    val chainFirst = (implicitRef | identifier) ~ gToken.Period() ~ identifier ^^ { case l ~ _ ~ r => gExpr.Index(l, r)}
+
+    chainl1(
+      chainFirst,
+      identifier,
+      gToken.Period() ^^^ { (l: gExpr, r: gExpr.Id) => gExpr.Index(l, r)}
+    )
   }
 
   def stages: Parser[List[gExpr.gStage]] = {
