@@ -84,9 +84,12 @@ object Transformer {
       case v: gExpr.gLit.Int => g2f(v)
       case v: gExpr.gLit.Duration => g2f(v)
       case gExpr.gLit.Array(items) => fLit.Array(items.map(g2fBlocklike))
-      case gExpr.gLit.Record(items) => fLit.Record(
-        items.map((k, v) => fLit.Str(fToken(k.tok.s)) -> g2fBlocklike(v))
-      )
+      case v: gExpr.gLit.Record => fLit.Record(g2fPropertyList(v))
+
+  def g2fPropertyList(g: gExpr.gLit.Record): fExpr.PropertyList =
+    fExpr.PropertyList(
+      g.items.map((k, v) => fExpr.Identifier(fToken(k.tok.s)) -> g2fBlocklike(v))
+    )
 
   def g2fBlocklike(g: gExpr.blocklike): fExpr =
     g match
@@ -102,7 +105,7 @@ object Transformer {
 
   def g2fCall(g: gExpr.Call): fExpr =
     @tailrec
-    def getMemberChain(m: gExpr.Member,  acc: List[gExpr.Id | gExpr.gLit.Str] = List()): (gExpr.assignable, List[gExpr.Id | gExpr.gLit.Str]) =
+    def getMemberChain(m: gExpr.Member, acc: List[gExpr.Id | gExpr.gLit.Str] = List()): (gExpr.assignable, List[gExpr.Id | gExpr.gLit.Str]) =
       m.obj match
         case v: gExpr.Member => getMemberChain(v, m.value :: acc)
         case _ => (m.obj, m.value :: acc)
@@ -118,9 +121,9 @@ object Transformer {
 
   def mkOp2(s: mkOp2, g: gExpr.Call) =
     s(
-    g2fBlocklike(g.args(0).value),
-    g2fBlocklike(g.args(1).value)
-  )
+      g2fBlocklike(g.args(0).value),
+      g2fBlocklike(g.args(1).value)
+    )
 
   def transformMathlike(chain: List[gExpr.Id | gExpr.gLit.Str], g: gExpr.Call): fExpr =
     val s = chain.head match
@@ -211,28 +214,28 @@ object Helpers {
     )
 
   def fMapMany(v: gExpr.gStage.mapMany): fExpr.|> =
-    val rhs = v.id match
-      case Some(_) =>
-        fExpr.Op2(
-          fToken(":"),
-          fExpr.Identifier(fToken("_value")),
-          Transformer.g2fBlocklike(v.record)
-        )
-      case None =>
-        Transformer.g2f(v.record)
-
-    val assign = fExpr.Op2(
-      fToken("with"),
-      fExpr.Identifier(fToken("r")),
-      rhs
-    )
+    val returnStmt = v.id match
+      case None => fExpr.Return(
+        fLit.Record(fExpr.WithProperties(
+          fExpr.Identifier(fToken("r")),
+          Transformer.g2fPropertyList(v.record)
+        ))
+      )
+      case Some(value) => fExpr.Return(
+        fLit.Record(fExpr.WithProperties(
+          fExpr.Identifier(fToken("r")),
+          Transformer.g2fPropertyList(gExpr.gLit.Record(
+            Map(gExpr.Id(gToken.Id("_value")) -> v.record)
+          )) // creates synthetic `r with _value: {...}`
+        ))
+      )
 
     val body = v.block match
       case Some(value) =>
         fExpr.Block(
-          Transformer.g2f(value).exprs :+ assign
+          Transformer.g2f(value).exprs :+ returnStmt
         )
-      case None => assign
+      case None => returnStmt
 
     fExpr.|>(
       Func.map(

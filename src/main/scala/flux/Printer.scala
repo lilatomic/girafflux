@@ -79,11 +79,19 @@ object Printer {
         )
       case fExpr.ModuleImport(module) =>
         prependToFirst("import ", print(module))
-//        List(s"import ${l(module.tok)}")
       case fExpr.Block(exprs) => coalesceSingle(exprs.flatMap(print(_, indent)), start = Some("{"), end = Some("}"))
       case fExpr.Assign(obj, value) => coalesceSingles(
         print(obj), print(value), sep = "="
       )
+      case fExpr.Return(body) => prependToFirst("return ", print(body))
+      case fExpr.PropertyList(elems) => parenthesised("",
+        elems.map {
+          (k: fExpr.Identifier, v: fExpr) =>
+            coalesceSingles(print(k), print(v), sep = ": ")
+        }.toList,
+        ",", "")
+      case fExpr.WithProperties(identifier, propertyList) =>
+        coalesceSingles(print(identifier), print(propertyList), sep=" with ")
 
   private def printFunction(v: fExpr.Function, indent: Int): List[String] =
     s"(${v.params.map(l).mkString(",")}) =>" :: print(v.body, indent)
@@ -102,11 +110,6 @@ object Printer {
       case fLit.Regex(tok) => List(s"/${l(tok)}/")
       case fLit.Array(elems) =>
         parenthesised("[", elems.map(print(_, indent)), ",", "]")
-      case fLit.Record(elems) => parenthesised("{",
-        elems.map {
-          (k, v) =>
-            coalesceSingles(print(k), print(v), sep = ":")
-        }.toList,
-        ",", "}")
+      case fLit.Record(body) => coalesceSingle(print(body), start=Some("{"), end=Some("}"))
       case fLit.Dict(elems) => ???
 }

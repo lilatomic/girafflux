@@ -33,6 +33,12 @@ object fExpr {
   case class Assign(obj: fExpr, value: fExpr) extends fExpr
 
   case class Block(exprs: List[fExpr]) extends fExpr
+
+  case class Return(expr: fExpr) extends fExpr
+
+  case class PropertyList(elems: Map[fExpr.Identifier, fExpr]) extends fExpr
+
+  case class WithProperties(identifier: fExpr.Identifier, propertyList: fExpr.PropertyList) extends fExpr
 }
 
 sealed trait fLit extends fExpr
@@ -50,7 +56,7 @@ object fLit {
 
   case class Array(elems: List[fExpr]) extends fLit
 
-  case class Record(elems: Map[Str, fExpr]) extends fLit
+  case class Record(body: fExpr.PropertyList | fExpr.WithProperties) extends fLit
 
   case class Dict(elems: Map[fExpr, fExpr]) extends fLit
 }
