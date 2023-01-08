@@ -1,0 +1,25 @@
+---g
+from noaa
+|$ "average_temperature"
+|@ start -30d
+|._ math.div(a0: math.mul(a0: math.sub(a0: float(v: r._value), a1: 32.0), a1: 5.0), a1: 9.0)
+
+---a
+|._ math.div(a0: math.mul(a0: math.sub(a0: float(v: r._value), a1: 32.0), a1: 5.0), a1: 9.0)
+---f
+from(bucket: "noaa")
+    |> filter(fn: (r) => r._measurement == "average_temperature")
+    |> range(start: -30d)
+    |> map(fn: (r) => ({r with _value: (float(v: r._value) - 32.0) * 5.0 / 9.0} ))
+
+---u
+from(bucket: "noaa")
+|> filter(
+fn: (r) =>
+r["_measurement"] == "average_temperature"
+)
+|> range(start: -30d)
+|> map(
+fn: (r) =>
+{r with _value: (float(v: r._value) - 32.0) * 5.0 / 9.0}
+)

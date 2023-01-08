@@ -1,0 +1,15 @@
+---g
+from noaa
+| group()
+| unique(column: "location")
+| count(column: "location")
+---f
+from(bucket: "noaa")
+    |> group()
+    |> unique(column: "location")
+    |> count(column: "location")
+---u
+from(bucket: "noaa")
+|> group()
+|> unique(column: "location")
+|> count(column: "location")

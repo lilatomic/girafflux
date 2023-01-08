@@ -74,8 +74,10 @@ fn: (r) =>
 totalTime=float(v: r.NOK + r.OK)
 return {
 r with
+
 NOK: float(v: r.NOK) / totalTime * 100.0,
 OK: float(v: r.OK) / totalTime * 100.0,
+
 }
 }
 )

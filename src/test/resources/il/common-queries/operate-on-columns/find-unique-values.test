@@ -1,0 +1,18 @@
+---g
+from noaa
+|@ start -30d
+| group()
+| keep(columns: ["location"])
+| unique(column: "location")
+---f
+from(bucket: "noaa")
+    |> range(start: -30d)
+    |> group()
+    |> keep(columns: ["location"])
+    |> unique(column: "location")
+---u
+from(bucket: "noaa")
+|> range(start: -30d)
+|> group()
+|> keep(columns: ["location"])
+|> unique(column: "location")
