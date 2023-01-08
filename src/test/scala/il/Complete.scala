@@ -14,7 +14,11 @@ class Complete extends munit.FunSuite {
 
       val fStr = for {
         gTokens <- GLexer.lex(sections('g'))
-        gAst <- GParser.parse(gTokens)
+        gAst <- {
+          val o = GParser.parse(gTokens)
+          pprint.pprintln(o)
+          o
+        }
         fAst <- Transformer.transformProgram(gAst)
         fStr <- Right(Printer.print(fAst))
       } yield fStr
@@ -28,7 +32,10 @@ class Complete extends munit.FunSuite {
     }
   }
 
-  check("/il/simplest")
+  check("/il/common-queries/operate-on-columns/find-unique-values.test")
+  check("/il/common-queries/operate-on-columns/count-unique-values.test")
+  check("/il/common-queries/operate-on-columns/recalculate-the-_values-column.test")
 
-  check("/il/common-queries/iot-common-queries/calculate-time-in-state")
+
+  check("/il/common-queries/iot-common-queries/calculate-time-in-state.test")
 }
