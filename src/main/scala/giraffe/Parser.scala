@@ -66,7 +66,7 @@ object GParser extends Parsers {
   }
 
   def stage: Parser[gExpr.gStage] = positioned {
-    (gToken.Pipe() ~ (stageStreamMap | stageFilterMeasurement | stageFilterFieldMany | stageFilterField | stageRange | stageMap | stageMapMany )) ^^ { case _ ~ s => s }
+    (gToken.Pipe() ~ (stageStreamMap | stageFilterMeasurement | stageFilterField | stageRange | stageMap | stageMapMany)) ^^ { case _ ~ s => s }
   }
 
   def stageStreamMap: Parser[gExpr.gStage.streamMap] = positioned {
@@ -84,12 +84,12 @@ object GParser extends Parsers {
     (gToken.Dollar() ~> lit) ^^ (i => gExpr.gStage.filterMeasurement(_measurement = i))
   }
 
-  def stageFilterField: Parser[gExpr.gStage.filterField] = positioned {
-    (gToken.Percent() ~> lit) ^^ (i => gExpr.gStage.filterField(_field = i))
-  }
-
-  def stageFilterFieldMany: Parser[gExpr.gStage.filterFieldMany] = positioned {
-    (gToken.Percent() ~> repsep(lit, gToken.Comma())) ^^ (is => gExpr.gStage.filterFieldMany(_fields = is))
+  def stageFilterField: Parser[gExpr.gStage.filterFieldMany | gExpr.gStage.filterField] = positioned {
+    (gToken.Percent() ~> repsep(lit, gToken.Comma())) ^^ (is =>
+      is match
+        case i :: Nil => gExpr.gStage.filterField(i)
+        case _ => gExpr.gStage.filterFieldMany(is)
+      )
   }
 
   def stageMap: Parser[gExpr.gStage.map] = positioned {

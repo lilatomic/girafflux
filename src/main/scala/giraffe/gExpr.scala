@@ -31,7 +31,7 @@ object gExpr {
 
   case class Arg(name: Id, value: blocklike) extends gExpr
 
-  case class Index(obj: gExpr, value: gExpr) extends gExpr
+  case class Index(obj: assignable, value: blocklike) extends gExpr
 
   sealed trait gBuiltin extends gExpr
 
@@ -56,9 +56,9 @@ object gExpr {
 
     case class filter(fn: gFunction) extends gStage
 
-    case class filterMeasurement(_measurement: gExpr) extends gStage
+    case class filterMeasurement(_measurement: blocklike) extends gStage
 
-    case class filterField(_field: gExpr) extends gStage
+    case class filterField(_field: blocklike) extends gStage
 
     case class filterFieldMany(_fields: List[gExpr]) extends gStage
 
