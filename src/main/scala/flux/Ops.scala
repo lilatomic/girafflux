@@ -6,6 +6,7 @@ import flux.fExpr.{Op1, Op2}
 def bindOp1(op: String) = (a0: fExpr) => Op1(fToken(op), a0)
 def bindOp2(op: String) = (a0: fExpr, a1: fExpr) => Op2(fToken(op), a0, a1)
 
+type mkOp2 = (fExpr, fExpr) => fExpr.Op2
 
 object Ops {
   //  Arithmetic

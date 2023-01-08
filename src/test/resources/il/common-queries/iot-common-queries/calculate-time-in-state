@@ -71,13 +71,7 @@ valueColumn: "duration",
 |> map(
 fn: (r) =>
 {
-totalTime =
-float(
-v:
-r.NOK
-+
-r.OK
-)
+totalTime=float(v: r.NOK + r.OK)
 return {
 r with
 NOK: float(v: r.NOK) / totalTime * 100.0,

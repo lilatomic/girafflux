@@ -1,9 +1,10 @@
 package il
 
-import flux.{Func, fExpr, fLit, fToken}
+import flux.{Func, Ops, fExpr, fLit, fToken, mkOp2}
 import giraffe.gExpr.{gBuiltin, gStage}
 import giraffe.{gExpr, gToken}
 
+import scala.annotation.tailrec
 import scala.util.parsing.combinator.Parsers
 
 object Transformer {
@@ -89,7 +90,7 @@ object Transformer {
 
   def g2fBlocklike(g: gExpr.blocklike): fExpr =
     g match
-      case v: gExpr.Call => g2f(v)
+      case v: gExpr.Call => g2fCall(v)
       case v: gExpr.Assign => g2f(v)
       case v: gExpr.Member => g2f(v)
       case v: gExpr.Id => fExpr.Identifier(fToken(v.tok.s))
@@ -98,6 +99,58 @@ object Transformer {
       case v: gExpr.ImplicitRef => resolveImplicitRef(v)
 
   def g2f(g: gExpr.Call): fExpr.Call = fExpr.Call(g2fBlocklike(g.callee), g.args.map(g2f))
+
+  def g2fCall(g: gExpr.Call): fExpr =
+    @tailrec
+    def getMemberChain(m: gExpr.Member,  acc: List[gExpr.Id | gExpr.gLit.Str] = List()): (gExpr.assignable, List[gExpr.Id | gExpr.gLit.Str]) =
+      m.obj match
+        case v: gExpr.Member => getMemberChain(v, m.value :: acc)
+        case _ => (m.obj, m.value :: acc)
+
+    g.callee match
+      case member: gExpr.Member =>
+        val (head, memberChain) = getMemberChain(member)
+        head match
+          case gExpr.Id(gToken.Id("math")) => transformMathlike(memberChain, g)
+          case gExpr.Id(gToken.Id("cmp")) => transformCmplike(memberChain, g)
+          case _ => fExpr.Call(g2fBlocklike(g.callee), g.args.map(g2f))
+      case _ => fExpr.Call(g2fBlocklike(g.callee), g.args.map(g2f))
+
+  def mkOp2(s: mkOp2, g: gExpr.Call) =
+    s(
+    g2fBlocklike(g.args(0).value),
+    g2fBlocklike(g.args(1).value)
+  )
+
+  def transformMathlike(chain: List[gExpr.Id | gExpr.gLit.Str], g: gExpr.Call): fExpr =
+    val s = chain.head match
+      case v: gExpr.Id => v.tok.s
+      case v: gExpr.gLit.Str => v.tok.s
+
+    val op = s match
+      case "add" => Ops.addition
+      case "sub" => Ops.substraction
+      case "div" => Ops.division
+      case "mul" => Ops.multiplication
+      case "exp" => Ops.exponentiation
+      case "mod" => Ops.modulo
+    mkOp2(op, g)
+
+  def transformCmplike(chain: List[gExpr.Id | gExpr.gLit.Str], g: gExpr.Call): fExpr =
+    val s = chain.head match
+      case v: gExpr.Id => v.tok.s
+      case v: gExpr.gLit.Str => v.tok.s
+
+    val op = s match
+      case "eq" => Ops.eq
+      case "ne" => Ops.ne
+      case "lt" => Ops.lt
+      case "gt" => Ops.gt
+      case "le" => Ops.le
+      case "ge" => Ops.ge
+      case "regex_eq" => Ops.regex_eq
+      case "regex_ne" => Ops.regex_ne
+    mkOp2(op, g)
 
   def g2f(g: gExpr.Arg): fExpr.Arg = fExpr.Arg(fToken(g.name.tok.s), g2fBlocklike(g.value))
 
