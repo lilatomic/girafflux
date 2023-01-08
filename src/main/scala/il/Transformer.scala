@@ -95,6 +95,7 @@ object Transformer {
       case v: gExpr.Id => fExpr.Identifier(fToken(v.tok.s))
       case v: gExpr.gLit => g2fLit(v)
       case v: gExpr.Block => g2fBlocklike(reduceBlock(v))
+      case v: gExpr.ImplicitRef => resolveImplicitRef(v)
 
   def g2f(g: gExpr.Call): fExpr.Call = fExpr.Call(g2fBlocklike(g.callee), g.args.map(g2f))
 
@@ -115,6 +116,10 @@ object Transformer {
     fExpr.Assign(obj, g2fBlocklike(g.value))
 
   def g2f(g: gExpr.Index): fExpr.Index = fExpr.Index(g2f(g.obj), g2fBlocklike(g.value))
+
+  def resolveImplicitRef(g: gExpr.ImplicitRef): fExpr =
+    // TODO: some actual logic, we won't always be in a map
+    fExpr.Identifier(fToken("r"))
 }
 
 object Helpers {
