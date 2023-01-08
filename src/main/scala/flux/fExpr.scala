@@ -30,6 +30,8 @@ object fExpr {
 
   case class Index(obj: fExpr, value: fExpr) extends fExpr
 
+  case class Assign(obj: fExpr, value: fExpr) extends fExpr
+
   case class Block(exprs: List[fExpr]) extends fExpr
 }
 

@@ -75,8 +75,8 @@ object Transformer {
   def g2fLit(g: gExpr.gLit): fLit =
     g match
       case v: gExpr.gLit.Str => g2f(v)
-      case gExpr.gLit.Float(tok) => ???
-      case gExpr.gLit.Int(tok) => ???
+      case v: gExpr.gLit.Float => g2f(v)
+      case v: gExpr.gLit.Int => g2f(v)
       case v: gExpr.gLit.Duration => g2f(v)
       case gExpr.gLit.Array(items) => fLit.Array(items.map(g2fBlocklike))
       case gExpr.gLit.Record(items) => ???
@@ -84,7 +84,7 @@ object Transformer {
   def g2fBlocklike(g: gExpr.blocklike): fExpr =
     g match
       case v: gExpr.Call => g2f(v)
-      case v: gExpr.Assign => ???
+      case v: gExpr.Assign => g2f(v)
       case v: gExpr.Index => ???
       case v: gExpr.Id => fExpr.Identifier(fToken(v.tok.s))
       case v: gExpr.gLit => g2fLit(v)
@@ -100,5 +100,7 @@ object Transformer {
       case v: gExpr.blocklike => g2fBlocklike(v)
 
   def g2f(g: gExpr.gBuiltin.Now.type): fExpr = fLit.Str(fToken("now"))
+
+  def g2f(g: gExpr.Assign): fExpr.Assign = fExpr.Assign(g2fBlocklike(g.obj), g2fBlocklike(g.value))
 
 }

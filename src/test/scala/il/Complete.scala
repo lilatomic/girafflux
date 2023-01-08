@@ -9,7 +9,7 @@ import scala.io.Source
 class Complete extends munit.FunSuite {
   def check(filename: String)(implicit loc: munit.Location): Unit = {
     test(s"transform $filename") {
-      val file = Source.fromInputStream(getClass.getResourceAsStream("/il/simplest")).mkString
+      val file = Source.fromInputStream(getClass.getResourceAsStream(filename)).mkString
       val sections = file.split("---").filter(_.nonEmpty).map(section => section(0) -> section.substring(1)).toMap
 
       val fStr = for {
@@ -28,6 +28,7 @@ class Complete extends munit.FunSuite {
     }
   }
 
-  check("/li/simplest")
+  check("/il/simplest")
 
+  check("/il/common-queries/iot-common-queries/calculate-time-in-state")
 }

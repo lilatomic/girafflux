@@ -41,7 +41,9 @@ object gExpr {
 
   case class ImplicitRef() extends gExpr
 
-  case class Assign(obj: gExpr, value: gExpr) extends gExpr
+  type assignable = Id | Index | ImplicitRef
+
+  case class Assign(obj: assignable, value: blocklike) extends gExpr
 
   sealed trait gStage extends gExpr
 

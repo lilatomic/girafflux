@@ -135,7 +135,9 @@ object GParser extends Parsers {
   }
 
   def assign: Parser[gExpr.Assign] = positioned {
-    ((index | identifier) ~ gToken.Equal() ~ blocklike) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value)}
+    (index ~ gToken.Equal() ~ blocklike) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value)}
+    | (implicitRef ~ gToken.Equal() ~ blocklike) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value)}
+    | (identifier ~ gToken.Equal() ~ blocklike) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value)}
   }
 
 }
