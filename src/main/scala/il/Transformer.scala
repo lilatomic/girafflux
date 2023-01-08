@@ -1,6 +1,6 @@
 package il
 
-import flux.{fExpr, fLit, fToken}
+import flux.{Func, fExpr, fLit, fToken}
 import giraffe.gExpr.{gBuiltin, gStage}
 import giraffe.{gExpr, gToken}
 
@@ -49,8 +49,12 @@ object Transformer {
       case gStage.map(id, expr) => ???
       case gStage.mapMany(id, many) => ???
       case gStage.filter(fn) => ???
-      case gStage.filterMeasurement(_measurement) => ???
-      case gStage.filterField(_field) => ???
+      case gStage.filterMeasurement(_measurement) =>
+        val measurementExpr = g2fBlocklike(reduceBlock(_measurement))
+        Helpers.fFilterEqual("_measurement", measurementExpr)
+
+      case gStage.filterField(_field) =>
+        Helpers.fFilterEqual("_field", g2fBlocklike(reduceBlock(_field)))
       case gStage.filterFieldMany(_fields) => ???
       case gStage.streamMap(block) =>
         reduceBlock(block) match
@@ -103,4 +107,15 @@ object Transformer {
 
   def g2f(g: gExpr.Assign): fExpr.Assign = fExpr.Assign(g2fBlocklike(g.obj), g2fBlocklike(g.value))
 
+}
+
+object Helpers {
+  def fFilterEqual(attr: String, expr: fExpr) =
+    fExpr.|>(
+      Func.filter(
+        fExpr.Function(
+          List(fToken("r")), fExpr.Op2(fToken("=="), fExpr.Index(fExpr.Identifier(fToken("r")), fLit.Str(fToken(attr))), expr)
+        )
+      )
+    )
 }
