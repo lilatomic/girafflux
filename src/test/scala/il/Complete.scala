@@ -19,7 +19,7 @@ class Complete extends munit.FunSuite {
         fStr <- Right(Printer.print(fAst))
       } yield fStr
 
-      val expected = sections('f').strip()
+      val expected = sections.getOrElse('u', sections('f')).strip()
 
       // ---
       val obtained = fStr.map(_.mkString("\n")).getOrElse("").strip()
