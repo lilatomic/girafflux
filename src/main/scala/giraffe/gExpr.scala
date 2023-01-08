@@ -80,6 +80,6 @@ object gExpr {
 
     case class Array(items: List[blocklike]) extends gLit
 
-    case class Record(items: Map[Id, gExpr]) extends gLit
+    case class Record(items: Map[Id, blocklike]) extends gLit
   }
 }

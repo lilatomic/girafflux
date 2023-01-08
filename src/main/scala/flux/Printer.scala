@@ -96,6 +96,11 @@ object Printer {
       case fLit.Regex(tok) => List(s"/${l(tok)}/")
       case fLit.Array(elems) =>
         parenthesised("[", elems.map(print(_, indent)), ",", "]")
-      case fLit.Record(elems) => ???
+      case fLit.Record(elems) => parenthesised("{",
+        elems.map {
+          (k, v) =>
+            coalesceSingles(print(k), print(v), sep = ":")
+        }.toList,
+        ",", "}")
       case fLit.Dict(elems) => ???
 }

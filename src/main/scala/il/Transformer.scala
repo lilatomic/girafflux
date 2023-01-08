@@ -83,7 +83,9 @@ object Transformer {
       case v: gExpr.gLit.Int => g2f(v)
       case v: gExpr.gLit.Duration => g2f(v)
       case gExpr.gLit.Array(items) => fLit.Array(items.map(g2fBlocklike))
-      case gExpr.gLit.Record(items) => ???
+      case gExpr.gLit.Record(items) => fLit.Record(
+        items.map((k,v)=> fLit.Str(fToken(k.tok.s)) ->g2fBlocklike(v))
+      )
 
   def g2fBlocklike(g: gExpr.blocklike): fExpr =
     g match
