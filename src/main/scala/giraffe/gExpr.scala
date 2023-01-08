@@ -13,7 +13,7 @@ object gExpr {
 
   case class Block(exprs: List[blocklike]) extends gExpr
 
-  type blocklike = Call | Assign | Index | Id | gLit | Block | ImplicitRef // TODO: Use in more places
+  type blocklike = Call | Assign | Member | Id | gLit | Block | ImplicitRef // TODO: Use in more places
 
   object Block {
     def lift(expr: blocklike): Block = Block(List(expr))
@@ -31,7 +31,7 @@ object gExpr {
 
   case class Arg(name: Id, value: blocklike) extends gExpr
 
-  case class Index(obj: assignable, value: blocklike) extends gExpr
+  case class Member(obj: assignable, value: Id | gLit.Str) extends gExpr
 
   sealed trait gBuiltin extends gExpr
 
@@ -41,7 +41,7 @@ object gExpr {
 
   case class ImplicitRef() extends gExpr
 
-  type assignable = Id | Index | ImplicitRef
+  type assignable = Id | Member | ImplicitRef
 
   case class Assign(obj: assignable, value: blocklike) extends gExpr
 

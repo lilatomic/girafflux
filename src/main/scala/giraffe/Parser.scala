@@ -53,14 +53,14 @@ object GParser extends Parsers {
       | (identifier ~ gToken.Colon() ~ implicitRef) ^^ { case i ~ _ ~ v => gExpr.Arg(i, v) }
   }
 
-  def index: Parser[gExpr.Index] = {
-    val chainFirst = (implicitRef) ~ gToken.Period() ~ identifier ^^ { case l ~ _ ~ r => gExpr.Index(l, r) }
-      | (identifier) ~ gToken.Period() ~ identifier ^^ { case l ~ _ ~ r => gExpr.Index(l, r) }
+  def index: Parser[gExpr.Member] = {
+    val chainFirst = (implicitRef) ~ gToken.Period() ~ identifier ^^ { case l ~ _ ~ r => gExpr.Member(l, r) }
+      | (identifier) ~ gToken.Period() ~ identifier ^^ { case l ~ _ ~ r => gExpr.Member(l, r) }
 
     chainl1(
       chainFirst,
       identifier,
-      gToken.Period() ^^^ { (l: gExpr.assignable, r: gExpr.Id) => gExpr.Index(l, r) }
+      gToken.Period() ^^^ { (l: gExpr.assignable, r: gExpr.Id) => gExpr.Member(l, r) }
     )
   }
 

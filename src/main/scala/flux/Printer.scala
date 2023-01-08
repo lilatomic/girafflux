@@ -65,7 +65,7 @@ object Printer {
       case v: fExpr.Function => printFunction(v, indent)
       case fExpr.Op1(op, a0) => l(op) :: print(a0, indent)
       case v: fExpr.Op2 => printOp2(v, indent)
-      case fExpr.Index(obj, value) =>
+      case fExpr.Member(obj, value) =>
         coalesceSingles(
           print(obj, indent), print(value, indent), "[", end = Some("]")
         )

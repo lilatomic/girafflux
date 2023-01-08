@@ -40,7 +40,7 @@ class Assemble extends munit.FunSuite {
           Arg(
             fToken("fn"),
             Function(
-              List(fToken("r")), Op2(fToken("=="), Index(Identifier(fToken("r")), fLit.Str(_measurement)), fLit.Str(fToken("vpsmetrics")))
+              List(fToken("r")), Op2(fToken("=="), Member(Identifier(fToken("r")), fLit.Str(_measurement)), fLit.Str(fToken("vpsmetrics")))
             )
           )
         )))
@@ -62,10 +62,10 @@ r["_measurement"] == "vpsmetrics"
       List(
         |>(range(fLit.Duration(fToken("-1h")))),
         |>(filterMany(List(
-          Ops.eq(Index(Identifier(fToken("r")), fLit.Str(_measurement)), fLit.Str(fToken("cpsmetrics"))),
+          Ops.eq(Member(Identifier(fToken("r")), fLit.Str(_measurement)), fLit.Str(fToken("cpsmetrics"))),
           Ops.eq(fLit.Str(fToken("host")), fLit.Str(fToken("vpsfrsqlpac1"))),
-          Ops.eq(Index(Identifier(fToken("r")), fLit.Str(fToken("_field"))), fLit.Str(fToken("pcpu"))),
-          Ops.gt(Index(Identifier(fToken("r")), fLit.Str(fToken("_value"))), fLit.Integer(fToken("80"))),
+          Ops.eq(Member(Identifier(fToken("r")), fLit.Str(fToken("_field"))), fLit.Str(fToken("pcpu"))),
+          Ops.gt(Member(Identifier(fToken("r")), fLit.Str(fToken("_value"))), fLit.Integer(fToken("80"))),
         ))),
         |>(sort(fLit.Array(List(fLit.Str(fToken("_value")))), desc=Some(fLit.Boolean(fToken("true"))))),
         |>(limit(fLit.Integer(fToken("10")))),
