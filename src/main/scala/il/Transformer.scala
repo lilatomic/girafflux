@@ -8,7 +8,7 @@ import scala.util.parsing.combinator.Parsers
 
 object Transformer {
 
-  def transformProgram(expr: gExpr.Script) = {
+  def transformProgram(expr: gExpr.Script): Right[Nothing, fExpr.Script] = {
     Right(g2f(expr))
   }
 
@@ -29,7 +29,7 @@ object Transformer {
       case f: gToken.LitFloat => f.f
       case i: gToken.LitInt => i.i
 
-    fLit.Duration(fToken(s"${value}${g.tok.unit.u}"))
+    fLit.Duration(fToken(s"$value${g.tok.unit.u}"))
 
   def g2f(g: gExpr.ModuleImport): fExpr.ModuleImport = fExpr.ModuleImport(g2f(g.module))
 
@@ -84,7 +84,7 @@ object Transformer {
       case v: gExpr.gLit.Duration => g2f(v)
       case gExpr.gLit.Array(items) => fLit.Array(items.map(g2fBlocklike))
       case gExpr.gLit.Record(items) => fLit.Record(
-        items.map((k,v)=> fLit.Str(fToken(k.tok.s)) ->g2fBlocklike(v))
+        items.map((k, v) => fLit.Str(fToken(k.tok.s)) -> g2fBlocklike(v))
       )
 
   def g2fBlocklike(g: gExpr.blocklike): fExpr =
@@ -118,7 +118,7 @@ object Transformer {
   def g2f(g: gExpr.Index): fExpr.Index = fExpr.Index(g2f(g.obj), g2fBlocklike(g.value))
 
   def resolveImplicitRef(g: gExpr.ImplicitRef): fExpr =
-    // TODO: some actual logic, we won't always be in a map
+  // TODO: some actual logic, we won't always be in a map
     fExpr.Identifier(fToken("r"))
 }
 
