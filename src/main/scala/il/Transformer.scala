@@ -115,7 +115,13 @@ object Transformer {
       case v: gExpr.Id => g2f(v)
     fExpr.Assign(obj, g2fBlocklike(g.value))
 
-  def g2f(g: gExpr.Member): fExpr.Member = fExpr.Member(g2f(g.obj), g2fBlocklike(g.value))
+  def g2f(g: gExpr.Member): fExpr.Member =
+    fExpr.Member(
+      g2f(g.obj),
+      g.value match
+        case v: gExpr.Id => g2f(v)
+        case v: gExpr.gLit.Str => g2f(v)
+    )
 
   def resolveImplicitRef(g: gExpr.ImplicitRef): fExpr =
   // TODO: some actual logic, we won't always be in a map

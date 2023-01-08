@@ -28,7 +28,7 @@ object fExpr {
 
   case class Op2(op: fToken, a0: fExpr, a1: fExpr) extends fExpr
 
-  case class Member(obj: fExpr, value: fExpr) extends fExpr
+  case class Member(obj: fExpr, value: fExpr.Identifier | fLit.Str) extends fExpr
 
   case class Assign(obj: fExpr, value: fExpr) extends fExpr
 
