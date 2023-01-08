@@ -30,8 +30,11 @@ object GLexer extends RegexParsers {
     litDateTime | litDuration | litStr | litFloat | litInt
   }
 
-  def identifier: Parser[Id] = {
-    "\\p{L}[\\p{L}\\p{N}]*".r ^^ { str => Id(str) }
+  def identifier: Parser[Id | Underscore] = {
+    "[\\p{L}_][\\p{L}\\p{N}_]*".r ^^ { str => str match
+      case "_" => Underscore()
+      case _ => gToken.Id(str)
+    }
   }
 
   // text keywords
