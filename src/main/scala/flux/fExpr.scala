@@ -12,7 +12,7 @@ object fExpr {
 
   case class Query(from: From, ops: List[|>]) extends fExpr
 
-  case class From(bucket: fToken) extends fExpr
+  case class From(bucket: fExpr.Identifier) extends fExpr
 
   case class |>(inv: Call) extends fExpr
 

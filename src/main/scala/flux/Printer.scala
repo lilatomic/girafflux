@@ -56,7 +56,7 @@ object Printer {
   def print(expr: fExpr, indent: Int = 0): List[String] =
     expr match
       case fExpr.Query(from, ops) => print(from, indent) ++ ops.flatMap(print(_, indent + 1))
-      case fExpr.From(bucket) => List(s"from(bucket: \"${l(bucket)}\")")
+      case fExpr.From(bucket) => List(s"from(bucket: \"${l(bucket.tok)}\")")
       case fExpr.|>(inv) => prependToFirst("|> ", print(inv))
       case fExpr.Call(op, args) =>
         parenthesised(s"${print(op).mkString("\n")}(", args.map(print(_, indent)), ",", ")")

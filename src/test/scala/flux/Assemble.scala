@@ -11,13 +11,13 @@ val _measurement = fToken("_measurement")
 class Assemble extends munit.FunSuite {
   test("assemble - select all") {
     val expr = Query(
-      From(fToken(bucketName)),
+      From(Identifier(fToken(bucketName))),
       List()
     )
   }
   test("assemble - time range") {
     val expr = Query(
-      From(fToken(bucketName)),
+      From(Identifier(fToken(bucketName))),
       List(
         |>(Call(Identifier(fToken("range")), args = List(
           Arg(fToken("start"), fLit.Duration(fToken("-1h")))
@@ -31,7 +31,7 @@ class Assemble extends munit.FunSuite {
   }
   test("assemble - inline lambda") {
     val expr = Query(
-      From(fToken(bucketName)),
+      From(Identifier(fToken(bucketName))),
       List(
         |>(Call(Identifier(fToken("range")), args = List(
           Arg(fToken("start"), fLit.Duration(fToken("-1h")))
@@ -58,7 +58,7 @@ r["_measurement"] == "vpsmetrics"
 
   test("assemble - with helpers"){
     val expr = Query(
-      From(fToken(bucketName)),
+      From(Identifier(fToken(bucketName))),
       List(
         |>(range(fLit.Duration(fToken("-1h")))),
         |>(filterMany(List(

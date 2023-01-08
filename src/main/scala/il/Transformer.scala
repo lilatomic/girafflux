@@ -14,7 +14,7 @@ object Transformer {
 
   def g2f(g: gExpr.Script): fExpr.Script = fExpr.Script(imports = g.imports.map(g2f), queries = g.queries.map(g2f))
 
-  def g2f(g: gExpr.Id): fToken = fToken(g.tok.s)
+  def g2f(g: gExpr.Id): fExpr.Identifier = fExpr.Identifier(fToken(g.tok.s))
 
   def g2f(g: gExpr.From): fExpr.From = fExpr.From(g2f(g.bucket))
 
