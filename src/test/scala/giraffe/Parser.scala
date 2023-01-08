@@ -125,6 +125,26 @@ class Parser extends munit.FunSuite {
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
+  test("map block - adding many") {
+    val expr = WorkFlow.run("""from a |. { q = 5 { w: 1 , e: 2 } }""")
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
+  test("map block - replacing many") {
+    val expr = WorkFlow.run("""from a |._ { q = 5 { w: 1 , e: 2 } } """)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
+  test("map block - adding") {
+    val expr = WorkFlow.run("""from a |. x { q = 5 q } """)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
+  test("map block - replacing") {
+    val expr = WorkFlow.run("""from a |._ { q = 5 q } """)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
   test("assign") {
     val expr = WorkFlow.run("""from a |._ x = 42""")
     pprint.pprintln(expr)

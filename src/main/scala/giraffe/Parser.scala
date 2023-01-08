@@ -1,5 +1,8 @@
 package giraffe
 
+import giraffe.gExpr.Block
+
+import scala.annotation.tailrec
 import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.input.{NoPosition, Position, Reader}
 
@@ -52,7 +55,7 @@ object GParser extends Parsers {
 
   def index: Parser[gExpr.Index] = {
     val chainFirst = (implicitRef) ~ gToken.Period() ~ identifier ^^ { case l ~ _ ~ r => gExpr.Index(l, r) }
-       | (identifier) ~ gToken.Period() ~ identifier ^^ { case l ~ _ ~ r => gExpr.Index(l, r) }
+      | (identifier) ~ gToken.Period() ~ identifier ^^ { case l ~ _ ~ r => gExpr.Index(l, r) }
 
     chainl1(
       chainFirst,
@@ -98,12 +101,29 @@ object GParser extends Parsers {
     withIdentifier | withoutIdentifier
   }
 
-  def stageMapMany: Parser[gExpr.gStage.mapMany] = positioned {
-    val replacing = (gToken.Period() ~> implicitRef ~ litRecord) ^^ { case i ~ b => gExpr.gStage.mapMany(Some(i), b) }
-    val adding = (gToken.Period() ~> litRecord) ^^ (b => gExpr.gStage.mapMany(None, b))
-    val replacingBlock = (gToken.Period() ~> implicitRef ~ blockMany) ^^ { case i ~ b => gExpr.gStage.mapMany(Some(i), b) }
-    val addingBlock = (gToken.Period() ~> blockMany) ^^ (b => gExpr.gStage.mapMany(None, b))
-    replacingBlock | replacing | addingBlock | adding
+  def stageMapMany: Parser[gExpr.gStage.map | gExpr.gStage.mapMany] = positioned {
+    val replacingMany = (gToken.Period() ~> implicitRef ~ litRecord) ^^ { case i ~ b => gExpr.gStage.mapMany(Some(i), b) }
+    val addingMany = (gToken.Period() ~> litRecord) ^^ (b => gExpr.gStage.mapMany(None, b))
+
+    @tailrec
+    def walkBlockForReturnResult(block: gExpr.Block): Option[gExpr.gLit.Record] =
+      block.exprs match
+        case ::(_, _) =>
+          block.exprs.last match
+            case b: gExpr.Block => walkBlockForReturnResult(b)
+            case r: gExpr.gLit.Record => Some(r)
+            case _ => None
+        case Nil => None
+
+    val inBlock = (gToken.Period() ~> opt(implicitRef) ~ blockMany) >> {
+      case i ~ b =>
+        val lastInBlockIsARecord = walkBlockForReturnResult(b)
+        lastInBlockIsARecord match
+          case Some(r) => success(gExpr.gStage.mapMany(i, b))
+          case None => err("mapMany must have a record as the last (nested) expression in the block")
+    }
+
+    replacingMany | addingMany | inBlock
   }
 
   private def identifier: Parser[gExpr.Id] = positioned {
