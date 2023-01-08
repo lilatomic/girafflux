@@ -89,7 +89,7 @@ object Transformer {
     g match
       case v: gExpr.Call => g2f(v)
       case v: gExpr.Assign => g2f(v)
-      case v: gExpr.Index => ???
+      case v: gExpr.Index => g2f(v)
       case v: gExpr.Id => fExpr.Identifier(fToken(v.tok.s))
       case v: gExpr.gLit => g2fLit(v)
       case v: gExpr.Block => g2fBlocklike(reduceBlock(v))
@@ -107,6 +107,7 @@ object Transformer {
 
   def g2f(g: gExpr.Assign): fExpr.Assign = fExpr.Assign(g2fBlocklike(g.obj), g2fBlocklike(g.value))
 
+  def g2f(g: gExpr.Index): fExpr.Index = fExpr.Index(g2f(g.obj), g2fBlocklike(g.value))
 }
 
 object Helpers {
