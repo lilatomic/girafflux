@@ -11,9 +11,9 @@ object gExpr {
 
   case class Script(imports: List[ModuleImport], queries: List[Query]) extends gExpr
 
-  case class Block(exprs: List[blocklike]) extends gExpr
+  sealed trait blocklike extends gExpr
 
-  type blocklike = Call | Assign | Member | Id | gLit | Block | ImplicitRef // TODO: Use in more places
+  case class Block(exprs: List[blocklike]) extends blocklike
 
   object Block {
     def lift(expr: blocklike): Block = Block(List(expr))
@@ -27,23 +27,23 @@ object gExpr {
 
   case class gFunction(args: List[Id], body: gExpr) extends gExpr
 
-  case class Call(callee: blocklike, args: List[Arg]) extends gExpr
+  case class Call(callee: blocklike, args: List[Arg]) extends blocklike
 
   case class Arg(name: Id, value: blocklike) extends gExpr
 
-  case class Member(obj: assignable, value: Id | gLit.Str) extends gExpr
+  case class Member(obj: assignable, value: Id | gLit.Str) extends blocklike
 
   sealed trait gBuiltin extends gExpr
 
-  sealed trait gLit extends gExpr
+  sealed trait gLit extends blocklike
 
-  case class Id(tok: gToken.Id) extends gExpr
+  case class Id(tok: gToken.Id) extends blocklike
 
-  case class ImplicitRef() extends gExpr
+  case class ImplicitRef() extends blocklike
 
   type assignable = Id | Member | ImplicitRef
 
-  case class Assign(obj: assignable, value: blocklike) extends gExpr
+  case class Assign(obj: assignable, value: blocklike) extends blocklike
 
   sealed trait gStage extends gExpr
 
