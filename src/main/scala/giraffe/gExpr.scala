@@ -68,13 +68,13 @@ object gExpr {
   }
 
   object gLit {
-    case class Duration(tok: gToken) extends gLit
-
     case class Str(tok: gToken.LitStr) extends gLit
 
     case class Float(tok: gToken.LitFloat) extends gLit
 
     case class Int(tok: gToken.LitInt) extends gLit
+
+    case class Duration(tok: gToken.LitDuration) extends gLit
 
     case class Array(items: List[blocklike]) extends gLit
 

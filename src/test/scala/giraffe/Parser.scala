@@ -84,6 +84,16 @@ class Parser extends munit.FunSuite {
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
+  test("literals - timedelta"){
+    val expr = WorkFlow.run("""from a |@ start 30d """)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
+  test("literals - negative numbers") {
+    val expr = WorkFlow.run("""from a |@ start -30d""")
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
 
   test("mapWith") {
     val expr = WorkFlow.run("""from a |. q "b"""")

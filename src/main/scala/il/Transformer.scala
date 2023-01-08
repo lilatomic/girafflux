@@ -13,10 +13,23 @@ object Transformer {
   }
 
   def g2f(g: gExpr.Script): fExpr.Script = fExpr.Script(imports = g.imports.map(g2f), queries = g.queries.map(g2f))
+
   def g2f(g: gExpr.Id): fToken = fToken(g.tok.s)
+
   def g2f(g: gExpr.From): fExpr.From = fExpr.From(g2f(g.bucket))
 
   def g2f(g: gExpr.gLit.Str): fLit.Str = fLit.Str(fToken(g.tok.s))
+
+  def g2f(g: gExpr.gLit.Int): fLit.Integer = fLit.Integer(fToken(g.tok.i))
+
+  def g2f(g: gExpr.gLit.Float): fLit.Float = fLit.Float(fToken(g.tok.f))
+
+  def g2f(g: gExpr.gLit.Duration): fLit.Duration =
+    val value = g.tok.value match
+      case f: gToken.LitFloat => f.f
+      case i: gToken.LitInt => i.i
+
+    fLit.Duration(fToken(s"${value}${g.tok.unit.u}"))
 
   def g2f(g: gExpr.ModuleImport): fExpr.ModuleImport = fExpr.ModuleImport(g2f(g.module).tok)
 
@@ -27,7 +40,9 @@ object Transformer {
       case gStage.range(start, stop) =>
         val argStart = fExpr.Arg(fToken("start"), g2fBlocklike(start))
         val argStop = fExpr.Arg(fToken("stop"), g2f(stop))
-        val args = if (stop == gExpr.gBuiltin.Now) {List(argStart)} else {
+        val args = if (stop == gExpr.gBuiltin.Now) {
+          List(argStart)
+        } else {
           List(argStart, argStop)
         }
         fExpr.|>(fExpr.Call(fExpr.Identifier(fToken("range")), args))
@@ -50,8 +65,8 @@ object Transformer {
       case _ => e
 
   def g2f(g: gExpr.Block): fExpr.Block =
-    if (g.exprs.size == 1){
-      val expr = g.exprs.head  // TODO: Better unrolling
+    if (g.exprs.size == 1) {
+      val expr = g.exprs.head // TODO: Better unrolling
       fExpr.Block(List(g2fBlocklike(expr)))
     } else {
       fExpr.Block(g.exprs.map(g2fBlocklike))
@@ -59,10 +74,10 @@ object Transformer {
 
   def g2fLit(g: gExpr.gLit): fLit =
     g match
-      case gExpr.gLit.Duration(tok) => ???
       case v: gExpr.gLit.Str => g2f(v)
       case gExpr.gLit.Float(tok) => ???
       case gExpr.gLit.Int(tok) => ???
+      case v: gExpr.gLit.Duration => g2f(v)
       case gExpr.gLit.Array(items) => fLit.Array(items.map(g2fBlocklike))
       case gExpr.gLit.Record(items) => ???
 
@@ -84,6 +99,6 @@ object Transformer {
       case v: gExpr.gBuiltin.Now.type => g2f(v)
       case v: gExpr.blocklike => g2fBlocklike(v)
 
-  def g2f(g: gExpr.gBuiltin.Now.type ): fExpr = fLit.Str(fToken("now"))
+  def g2f(g: gExpr.gBuiltin.Now.type): fExpr = fLit.Str(fToken("now"))
 
 }

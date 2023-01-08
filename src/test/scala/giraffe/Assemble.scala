@@ -15,7 +15,7 @@ class Assemble extends munit.FunSuite {
     val expr = Query(
       From(Id(gToken.Id(bucketName))),
       List(
-        gStage.range(start = gLit.Duration(gToken.LitStr("-1h")))
+        gStage.range(start = gLit.Duration(gToken.LitDuration(gToken.LitInt("-1"), gToken.LitTimeUnit("h"))))
       )
     )
   }

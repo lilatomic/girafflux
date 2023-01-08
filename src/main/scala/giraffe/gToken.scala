@@ -11,10 +11,17 @@ object gToken {
   case class Underscore() extends gToken
 
   // Literals
-  sealed trait Lit extends  gToken
+  sealed trait Lit extends gToken
+
   case class LitStr(s: String) extends Lit
+
   case class LitInt(i: String) extends Lit
+
   case class LitFloat(f: String) extends Lit
+
+  case class LitTimeUnit(u: String) extends Lit
+
+  case class LitDuration(value: LitInt | LitFloat, unit: LitTimeUnit) extends Lit
 
   // Keywords
 
