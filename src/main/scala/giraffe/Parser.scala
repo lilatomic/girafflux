@@ -20,7 +20,7 @@ object GParser extends Parsers {
   }
 
   def script: Parser[gExpr.Script] = positioned {
-    (rep(moduleImport) ~ rep(query)) ^^ {case is ~ qs => gExpr.Script(is, qs) }
+    (rep(moduleImport) ~ rep(query)) ^^ { case is ~ qs => gExpr.Script(is, qs) }
   }
 
   def moduleImport: Parser[gExpr.ModuleImport] = positioned {
@@ -36,18 +36,18 @@ object GParser extends Parsers {
   }
 
   def blocklike: Parser[gExpr.blocklike] = positioned {
-    ((call | assign | index | identifier | lit) ^^ { case i: gExpr.blocklike => i})
+    ((call | assign | index | identifier | lit) ^^ { case i: gExpr.blocklike => i })
       | blockMany
   }
 
   def call: Parser[gExpr.Call] = positioned {
     (index ~ gToken.ParenL() ~ repsep(arg, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(i, args) }
-    | (identifier ~ gToken.ParenL() ~ repsep(arg, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(i, args) }
+      | (identifier ~ gToken.ParenL() ~ repsep(arg, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(i, args) }
   }
 
-  def arg: Parser[gExpr.Arg] =  {
-    (identifier ~ gToken.Colon() ~ blocklike) ^^ { case i ~ _ ~ v => gExpr.Arg(i, v)}
-    | (identifier ~ gToken.Colon() ~ implicitRef) ^^ { case i ~ _ ~ v => gExpr.Arg(i, v)}
+  def arg: Parser[gExpr.Arg] = {
+    (identifier ~ gToken.Colon() ~ blocklike) ^^ { case i ~ _ ~ v => gExpr.Arg(i, v) }
+      | (identifier ~ gToken.Colon() ~ implicitRef) ^^ { case i ~ _ ~ v => gExpr.Arg(i, v) }
   }
 
   def index: Parser[gExpr.Index] = {
@@ -99,15 +99,15 @@ object GParser extends Parsers {
   }
 
   def stageMapMany: Parser[gExpr.gStage.mapMany] = positioned {
-    val replacing = (gToken.Period() ~> implicitRef ~ litRecord) ^^ { case i ~ b => gExpr.gStage.mapMany(Some(i), b)}
+    val replacing = (gToken.Period() ~> implicitRef ~ litRecord) ^^ { case i ~ b => gExpr.gStage.mapMany(Some(i), b) }
     val adding = (gToken.Period() ~> litRecord) ^^ (b => gExpr.gStage.mapMany(None, b))
-    val replacingBlock = (gToken.Period() ~> implicitRef ~ blockMany) ^^ { case i ~ b => gExpr.gStage.mapMany(Some(i), b)}
+    val replacingBlock = (gToken.Period() ~> implicitRef ~ blockMany) ^^ { case i ~ b => gExpr.gStage.mapMany(Some(i), b) }
     val addingBlock = (gToken.Period() ~> blockMany) ^^ (b => gExpr.gStage.mapMany(None, b))
     replacingBlock | replacing | addingBlock | adding
   }
 
   private def identifier: Parser[gExpr.Id] = positioned {
-    accept("identifier", { case id : gToken.Id => gExpr.Id(id) })
+    accept("identifier", { case id: gToken.Id => gExpr.Id(id) })
   }
 
   private def litStr = {
@@ -124,11 +124,11 @@ object GParser extends Parsers {
 
   def lit: Parser[gExpr.gLit] = positioned {
     litStr
-    | accept("float literal", { case f: gToken.LitFloat => gExpr.gLit.Float(f) })
-    | accept("int literal", { case i: gToken.LitInt => gExpr.gLit.Int(i) })
-    | accept("dateTime literal", {case td: gToken.LitDuration => gExpr.gLit.Duration(td)})
-    | litArray
-    | litRecord
+      | accept("float literal", { case f: gToken.LitFloat => gExpr.gLit.Float(f) })
+      | accept("int literal", { case i: gToken.LitInt => gExpr.gLit.Int(i) })
+      | accept("dateTime literal", { case td: gToken.LitDuration => gExpr.gLit.Duration(td) })
+      | litArray
+      | litRecord
   }
 
   def implicitRef: Parser[gExpr.ImplicitRef] = positioned {
@@ -136,9 +136,9 @@ object GParser extends Parsers {
   }
 
   def assign: Parser[gExpr.Assign] = positioned {
-    (index ~ gToken.Equal() ~ blocklike) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value)}
-    | (implicitRef ~ gToken.Equal() ~ blocklike) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value)}
-    | (identifier ~ gToken.Equal() ~ blocklike) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value)}
+    (index ~ gToken.Equal() ~ blocklike) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value) }
+      | (implicitRef ~ gToken.Equal() ~ blocklike) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value) }
+      | (identifier ~ gToken.Equal() ~ blocklike) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value) }
   }
 
 }
