@@ -107,7 +107,12 @@ object Transformer {
 
   def g2f(g: gExpr.gBuiltin.Now.type): fExpr = fLit.Str(fToken("now"))
 
-  def g2f(g: gExpr.Assign): fExpr.Assign = fExpr.Assign(g2fBlocklike(g.obj), g2fBlocklike(g.value))
+  def g2f(g: gExpr.Assign): fExpr.Assign =
+    val obj = g.obj match
+      case v: gExpr.ImplicitRef => resolveImplicitRef(v)
+      case v: gExpr.Index => g2f(v)
+      case v: gExpr.Id => g2f(v)
+    fExpr.Assign(obj, g2fBlocklike(g.value))
 
   def g2f(g: gExpr.Index): fExpr.Index = fExpr.Index(g2f(g.obj), g2fBlocklike(g.value))
 }

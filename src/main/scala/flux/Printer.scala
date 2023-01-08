@@ -72,12 +72,15 @@ object Printer {
       case lit: fLit => printLit(lit, indent)
       case fExpr.Script(imports, queries) =>
         coalesceSingles(
-          imports.flatMap {i => print(i, indent)},
+          imports.flatMap { i => print(i, indent) },
           queries.flatMap(q => print(q, indent)),
           sep = "\n"
         )
       case fExpr.ModuleImport(module) => List(s"import ${l(module)}")
-      case fExpr.Block(exprs) => coalesceSingle(exprs.flatMap(print(_, indent)), start=Some("{"), end=Some("}"))
+      case fExpr.Block(exprs) => coalesceSingle(exprs.flatMap(print(_, indent)), start = Some("{"), end = Some("}"))
+      case fExpr.Assign(obj, value) => coalesceSingles(
+        print(obj), print(value), sep = "="
+      )
 
   private def printFunction(v: fExpr.Function, indent: Int): List[String] =
     s"(${v.params.map(l).mkString(",")}) =>" :: print(v.body, indent)
