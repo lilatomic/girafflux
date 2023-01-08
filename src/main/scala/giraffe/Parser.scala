@@ -147,7 +147,8 @@ object GParser extends Parsers {
     litStr
       | accept("float literal", { case f: gToken.LitFloat => gExpr.gLit.Float(f) })
       | accept("int literal", { case i: gToken.LitInt => gExpr.gLit.Int(i) })
-      | accept("dateTime literal", { case td: gToken.LitDuration => gExpr.gLit.Duration(td) })
+      | accept("duration literal", { case td: gToken.LitDuration => gExpr.gLit.Duration(td) })
+      | accept("datetime literal", { case td: gToken.LitDateTime => gExpr.gLit.DateTime(td) })
       | litArray
       | litRecord
   }

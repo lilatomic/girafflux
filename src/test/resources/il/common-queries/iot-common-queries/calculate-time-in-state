@@ -2,7 +2,7 @@
 import "contrib/tomhollingworth/events"
 
 from machine
-|@ start "2021-08-01T00:00:00Z" stop "2021-08-02T00:30:00Z"
+|@ start 2021-08-01T00:00:00Z stop 2021-08-02T00:30:00Z
 |$ "machinery"
 |% "state"
 | events.duration( unit: 1h, columnName: "duration" )

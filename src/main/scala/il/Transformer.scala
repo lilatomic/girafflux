@@ -83,6 +83,7 @@ object Transformer {
       case v: gExpr.gLit.Float => g2f(v)
       case v: gExpr.gLit.Int => g2f(v)
       case v: gExpr.gLit.Duration => g2f(v)
+      case v: gExpr.gLit.DateTime => fLit.DateTime(fToken(v.tok.d))
       case gExpr.gLit.Array(items) => fLit.Array(items.map(g2fBlocklike))
       case v: gExpr.gLit.Record => fLit.Record(g2fPropertyList(v))
 

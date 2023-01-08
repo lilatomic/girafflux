@@ -106,7 +106,7 @@ class Parser extends munit.FunSuite {
     assert(expr.isRight)
   }
   test("common-queries/iot-common-queries/#calculate-time-in-state") {
-    val expr = WorkFlow.run("""import "contrib/tomhollingworth/events" from machine |@ start "2021-08-01T00:00:00Z" stop "2021-08-02T00:30:00Z" |$ "machinery" |% "state" | events.duration( unit: "1h", columnName: "duration" ) | group (columns: ["_value", "_start", "_stop", "station_id"]) | sum(column: "duration") | pivot(rowKey: ["_stop"], columnKey: ["_value"], valueColumn: "duration") |. { totalTime = float(v: math.add(a0: _.NOK, a1: _.OK)) {NOK: math.div(a0: float(v: r.NOK), a1: math.mul(a0: totalTime, a1: 100.0)), OK: math.div(a0: float(v: r.OK), a1: math.mul(a0: totalTime, a1: 100.0)) } }""")
+    val expr = WorkFlow.run("""import "contrib/tomhollingworth/events" from machine |@ start 2021-08-01T00:00:00Z stop 2021-08-02T00:30:00Z |$ "machinery" |% "state" | events.duration( unit: "1h", columnName: "duration" ) | group (columns: ["_value", "_start", "_stop", "station_id"]) | sum(column: "duration") | pivot(rowKey: ["_stop"], columnKey: ["_value"], valueColumn: "duration") |. { totalTime = float(v: math.add(a0: _.NOK, a1: _.OK)) {NOK: math.div(a0: float(v: r.NOK), a1: math.mul(a0: totalTime, a1: 100.0)), OK: math.div(a0: float(v: r.OK), a1: math.mul(a0: totalTime, a1: 100.0)) } }""")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }

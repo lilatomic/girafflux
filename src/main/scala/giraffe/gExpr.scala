@@ -78,6 +78,8 @@ object gExpr {
 
     case class Duration(tok: gToken.LitDuration) extends gLit
 
+    case class DateTime(tok: gToken.LitDateTime) extends gLit
+
     case class Array(items: List[blocklike]) extends gLit
 
     case class Record(items: Map[Id, blocklike]) extends gLit

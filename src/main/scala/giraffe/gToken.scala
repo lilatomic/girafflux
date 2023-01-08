@@ -23,6 +23,8 @@ object gToken {
 
   case class LitDuration(value: LitInt | LitFloat, unit: LitTimeUnit) extends Lit
 
+  case class LitDateTime(d: String) extends Lit
+
   // Keywords
 
   case class From() extends gToken

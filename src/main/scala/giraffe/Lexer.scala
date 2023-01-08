@@ -12,12 +12,22 @@ object GLexer extends RegexParsers {
     "(y|mo|w|d|h|m|s|ms|us|µs|ns)".r ^^ { LitTimeUnit.apply }
   }
 
+  def litDateTime: Parser[LitDateTime] = {
+    val date = "[0-9]{4}-[0-9]{2}-[0-9]{2}".r ^^ { s => s}
+    val time = "[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]*)?((Z)|([+\\-][0-9]{2}:[0-9]{2}))?".r ^^ (s => s)
+    val date_time_lit = date ~ opt("T" ~> time) ^^ { case d ~ t => t match
+      case Some(value) => LitDateTime(d + "T" + value)
+      case None => LitDateTime(d)
+    }
+    date_time_lit
+  }
+
   def literal: Parser[Lit] = {
     val litStr = "\"(?:[^\"\\\\]|\\\\.)*\"".r ^^ { s => LitStr(s.substring(1, s.length - 1)) }
     val litFloat = "-?\\p{Nd}+.\\p{Nd}*".r ^^ {s => LitFloat(s)}
     val litInt = "-?\\p{Nd}+".r ^^ {s => LitInt(s)}
     val litDuration = litFloat ~ litTimeUnit ^^ { case v ~ u => LitDuration(v, u)} | litInt ~ litTimeUnit ^^ { case v ~ u => LitDuration(v, u)}
-    litDuration | litStr | litFloat | litInt
+    litDateTime | litDuration | litStr | litFloat | litInt
   }
 
   def identifier: Parser[Id] = {
