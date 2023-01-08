@@ -88,7 +88,7 @@ object Transformer {
       case v: gExpr.Index => ???
       case v: gExpr.Id => fExpr.Identifier(fToken(v.tok.s))
       case v: gExpr.gLit => g2fLit(v)
-      case v: gExpr.Block => g2f(v)
+      case v: gExpr.Block => g2fBlocklike(reduceBlock(v))
 
   def g2f(g: gExpr.Call): fExpr.Call = fExpr.Call(g2fBlocklike(g.callee), g.args.map(g2f))
 
