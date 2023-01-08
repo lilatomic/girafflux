@@ -50,9 +50,9 @@ object gExpr {
   object gStage {
     case class range(start: blocklike, stop: blocklike | gBuiltin.Now.type = gBuiltin.Now) extends gStage
 
-    case class map(id: Id | ImplicitRef, expr: gExpr) extends gStage
+    case class map(id: Id | ImplicitRef, expr: blocklike) extends gStage
 
-    case class mapMany(id: Option[ImplicitRef], many: gLit.Record | Block) extends gStage
+    case class mapMany(id: Option[ImplicitRef], block: Option[Block], record: gLit.Record) extends gStage
 
     case class filter(fn: gFunction) extends gStage
 

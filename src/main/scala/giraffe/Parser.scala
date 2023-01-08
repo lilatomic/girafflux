@@ -102,16 +102,17 @@ object GParser extends Parsers {
   }
 
   def stageMapMany: Parser[gExpr.gStage.map | gExpr.gStage.mapMany] = positioned {
-    val replacingMany = (gToken.Period() ~> implicitRef ~ litRecord) ^^ { case i ~ b => gExpr.gStage.mapMany(Some(i), b) }
-    val addingMany = (gToken.Period() ~> litRecord) ^^ (b => gExpr.gStage.mapMany(None, b))
+    val replacingMany = (gToken.Period() ~> implicitRef ~ litRecord) ^^ { case i ~ b => gExpr.gStage.mapMany(Some(i), None, b) }
+    val addingMany = (gToken.Period() ~> litRecord) ^^ (b => gExpr.gStage.mapMany(None, None, b))
 
-    @tailrec
-    def walkBlockForReturnResult(block: gExpr.Block): Option[gExpr.gLit.Record] =
+    def walkBlockForReturnResult(block: gExpr.Block): Option[(gExpr.Block, gExpr.gLit.Record)] =
       block.exprs match
         case ::(_, _) =>
           block.exprs.last match
-            case b: gExpr.Block => walkBlockForReturnResult(b)
-            case r: gExpr.gLit.Record => Some(r)
+            case b: gExpr.Block => walkBlockForReturnResult(b).map(
+              (inner: gExpr.Block, r: gExpr.gLit.Record) => (gExpr.Block(block.exprs.init :+ inner), r)
+            )
+            case r: gExpr.gLit.Record => Some(Block(block.exprs.init), r)
             case _ => None
         case Nil => None
 
@@ -119,7 +120,7 @@ object GParser extends Parsers {
       case i ~ b =>
         val lastInBlockIsARecord = walkBlockForReturnResult(b)
         lastInBlockIsARecord match
-          case Some(r) => success(gExpr.gStage.mapMany(i, b))
+          case Some(newBlock, r) => success(gExpr.gStage.mapMany(i, Some(newBlock), r))
           case None => err("mapMany must have a record as the last (nested) expression in the block")
     }
 

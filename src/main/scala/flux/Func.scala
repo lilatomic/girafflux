@@ -13,6 +13,13 @@ object Func {
 
   def filter(fn: Function): Call = Call(Identifier(fToken("filter")), List(Arg(fToken("fn"), fn)))
 
+  def map(body: fExpr): Call = Call(
+    Identifier(fToken("map")),
+    List(Arg(fToken("fn"), Function(
+      List(fToken("r")),body
+    ))),
+  )
+
   def sort(columns: fExpr, desc: Option[fExpr]): Call = {
     val col = Arg(fToken("columns"), columns)
     desc match

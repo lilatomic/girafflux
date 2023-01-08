@@ -46,8 +46,8 @@ object Transformer {
           List(argStart, argStop)
         }
         fExpr.|>(fExpr.Call(fExpr.Identifier(fToken("range")), args))
-      case gStage.map(id, expr) => ???
-      case gStage.mapMany(id, many) => ???
+      case v: gStage.map => Helpers.fMap(v)
+      case v: gStage.mapMany => Helpers.fMapMany(v)
       case gStage.filter(fn) => ???
       case gStage.filterMeasurement(_measurement) =>
         val measurementExpr = g2fBlocklike(reduceBlock(_measurement))
@@ -111,12 +111,61 @@ object Transformer {
 }
 
 object Helpers {
-  def fFilterEqual(attr: String, expr: fExpr) =
+  def fFilterEqual(attr: String, expr: fExpr): fExpr.|> =
     fExpr.|>(
       Func.filter(
         fExpr.Function(
           List(fToken("r")), fExpr.Op2(fToken("=="), fExpr.Index(fExpr.Identifier(fToken("r")), fLit.Str(fToken(attr))), expr)
         )
+      )
+    )
+
+
+  def fMap(v: gExpr.gStage.map): fExpr.|> =
+    val target = v.id match
+      case _: gExpr.ImplicitRef => "_value"
+      case i: gExpr.Id => i.tok.s
+    fExpr.|>(
+      Func.map(
+        fExpr.Op2(
+          fToken("with"),
+          fExpr.Identifier(fToken("r")),
+          fExpr.Op2(
+            fToken(":"),
+            fExpr.Identifier(fToken(target)),
+            Transformer.g2fBlocklike(v.expr)
+          )
+        )
+      )
+    )
+
+  def fMapMany(v: gExpr.gStage.mapMany): fExpr.|> =
+    val rhs = v.id match
+      case Some(_) =>
+        fExpr.Op2(
+          fToken(":"),
+          fExpr.Identifier(fToken("_value")),
+          Transformer.g2fBlocklike(v.record)
+        )
+      case None =>
+        Transformer.g2f(v.record)
+
+    val assign = fExpr.Op2(
+      fToken("with"),
+      fExpr.Identifier(fToken("r")),
+      rhs
+    )
+
+    val body = v.block match
+      case Some(value) =>
+        fExpr.Block(
+          Transformer.g2f(value).exprs :+ assign
+        )
+      case None => assign
+
+    fExpr.|>(
+      Func.map(
+        body
       )
     )
 }
