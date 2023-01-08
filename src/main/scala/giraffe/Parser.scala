@@ -11,18 +11,23 @@ object GParser extends Parsers {
 
   def parse(tokens: Seq[gToken]): Either[gParseError, gExpr.Script] = {
     val reader = new gTokenReader(tokens)
+
+    def error(msg: String, next: Input) = Left(gParseError(Location(next.pos.line, next.pos.column), msg))
+
     program(reader) match
-      case NoSuccess(msg, next) => Left(gParseError(Location(next.pos.line, next.pos.column), msg))
-      case Success(result, next) => Right(result)
+      case NoSuccess(msg, next) => error(msg, next)
+      case Success(result, _) => Right(result)
+      case Failure(msg, next) => error(msg, next)
+      case Error(msg, next) => error(msg, next)
   }
 
   // parsers
 
-  def program: Parser[gExpr.Script] = {
+  private def program: Parser[gExpr.Script] = {
     phrase(script)
   }
 
-  def script: Parser[gExpr.Script] = positioned {
+  private def script: Parser[gExpr.Script] = positioned {
     (rep(moduleImport) ~ rep(query)) ^^ { case is ~ qs => gExpr.Script(is, qs) }
   }
 
@@ -30,7 +35,7 @@ object GParser extends Parsers {
     (gToken.ModuleImport() ~> litStr) ^^ (s => gExpr.ModuleImport(s))
   }
 
-  def query: Parser[gExpr.Query] = positioned {
+  private def query: Parser[gExpr.Query] = positioned {
     (gToken.From() ~ identifier ~ stages) ^^ { case _ ~ bucket ~ stages => gExpr.Query(gExpr.From(bucket), stages) }
   }
 
@@ -39,23 +44,22 @@ object GParser extends Parsers {
   }
 
   def blocklike: Parser[gExpr.blocklike] = positioned {
-    ((call | assign | index | identifier | lit) ^^ { case i: gExpr.blocklike => i })
-      | blockMany
+    call | assign | member | identifier | lit | blockMany
   }
 
-  def call: Parser[gExpr.Call] = positioned {
-    (index ~ gToken.ParenL() ~ repsep(arg, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(i, args) }
+  private def call: Parser[gExpr.Call] = positioned {
+    (member ~ gToken.ParenL() ~ repsep(arg, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(i, args) }
       | (identifier ~ gToken.ParenL() ~ repsep(arg, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(i, args) }
   }
 
-  def arg: Parser[gExpr.Arg] = {
+  private def arg: Parser[gExpr.Arg] = {
     (identifier ~ gToken.Colon() ~ blocklike) ^^ { case i ~ _ ~ v => gExpr.Arg(i, v) }
       | (identifier ~ gToken.Colon() ~ implicitRef) ^^ { case i ~ _ ~ v => gExpr.Arg(i, v) }
   }
 
-  def index: Parser[gExpr.Member] = {
-    val chainFirst = (implicitRef) ~ gToken.Period() ~ identifier ^^ { case l ~ _ ~ r => gExpr.Member(l, r) }
-      | (identifier) ~ gToken.Period() ~ identifier ^^ { case l ~ _ ~ r => gExpr.Member(l, r) }
+  private def member: Parser[gExpr.Member] = {
+    val chainFirst = implicitRef ~ gToken.Period() ~ identifier ^^ { case l ~ _ ~ r => gExpr.Member(l, r) }
+      | identifier ~ gToken.Period() ~ identifier ^^ { case l ~ _ ~ r => gExpr.Member(l, r) }
 
     chainl1(
       chainFirst,
@@ -64,30 +68,30 @@ object GParser extends Parsers {
     )
   }
 
-  def stages: Parser[List[gExpr.gStage]] = {
+  private def stages: Parser[List[gExpr.gStage]] = {
     rep1(stage)
   }
 
-  def stage: Parser[gExpr.gStage] = positioned {
+  private def stage: Parser[gExpr.gStage] = positioned {
     (gToken.Pipe() ~ (stageStreamMap | stageFilterMeasurement | stageFilterField | stageRange | stageMap | stageMapMany)) ^^ { case _ ~ s => s }
   }
 
-  def stageStreamMap: Parser[gExpr.gStage.streamMap] = positioned {
+  private def stageStreamMap: Parser[gExpr.gStage.streamMap] = positioned {
     call ^^ (c => gExpr.gStage.streamMap(gExpr.Block.lift(c)))
   }
 
-  def stageRange: Parser[gExpr.gStage.range] = positioned {
+  private def stageRange: Parser[gExpr.gStage.range] = positioned {
     (gToken.Atpersat() ~> gToken.Id("start") ~> lit ~ opt(gToken.Id("stop") ~> lit)) ^^ {
       case start ~ Some(stop) => gExpr.gStage.range(gExpr.Block.lift(start), gExpr.Block.lift(stop))
       case start ~ None => gExpr.gStage.range(gExpr.Block.lift(start))
     }
   }
 
-  def stageFilterMeasurement: Parser[gExpr.gStage.filterMeasurement] = positioned {
+  private def stageFilterMeasurement: Parser[gExpr.gStage.filterMeasurement] = positioned {
     (gToken.Dollar() ~> lit) ^^ (i => gExpr.gStage.filterMeasurement(_measurement = i))
   }
 
-  def stageFilterField: Parser[gExpr.gStage.filterFieldMany | gExpr.gStage.filterField] = positioned {
+  private def stageFilterField: Parser[gExpr.gStage.filterFieldMany | gExpr.gStage.filterField] = positioned {
     (gToken.Percent() ~> repsep(lit, gToken.Comma())) ^^ (is =>
       is match
         case i :: Nil => gExpr.gStage.filterField(i)
@@ -95,13 +99,13 @@ object GParser extends Parsers {
       )
   }
 
-  def stageMap: Parser[gExpr.gStage.map] = positioned {
+  private def stageMap: Parser[gExpr.gStage.map] = positioned {
     val withIdentifier = (gToken.Period() ~> identifier ~ blocklike) ^^ { case i ~ b => gExpr.gStage.map(i, b) }
     val withoutIdentifier = (gToken.Period() ~> implicitRef ~ blocklike) ^^ { case i ~ b => gExpr.gStage.map(i, b) }
     withIdentifier | withoutIdentifier
   }
 
-  def stageMapMany: Parser[gExpr.gStage.map | gExpr.gStage.mapMany] = positioned {
+  private def stageMapMany: Parser[gExpr.gStage.map | gExpr.gStage.mapMany] = positioned {
     val replacingMany = (gToken.Period() ~> implicitRef ~ litRecord) ^^ { case i ~ b => gExpr.gStage.mapMany(Some(i), None, b) }
     val addingMany = (gToken.Period() ~> litRecord) ^^ (b => gExpr.gStage.mapMany(None, None, b))
 
@@ -135,11 +139,11 @@ object GParser extends Parsers {
     accept("string literal", { case s: gToken.LitStr => gExpr.gLit.Str(s) })
   }
 
-  def litArray: Parser[gExpr.gLit.Array] = positioned {
+  private def litArray: Parser[gExpr.gLit.Array] = positioned {
     gToken.BracketL() ~> repsep(blocklike, gToken.Comma()) <~ gToken.BracketR() ^^ (items => gExpr.gLit.Array(items))
   }
 
-  def litRecord: Parser[gExpr.gLit.Record] = positioned {
+  private def litRecord: Parser[gExpr.gLit.Record] = positioned {
     (gToken.BraceL() ~> repsep(identifier ~ gToken.Colon() ~ blocklike, gToken.Comma()) <~ gToken.BraceR()) ^^ (kvpairs => gExpr.gLit.Record(kvpairs.map { case k ~ _ ~ v => k -> v }.toMap))
   }
 
@@ -153,12 +157,12 @@ object GParser extends Parsers {
       | litRecord
   }
 
-  def implicitRef: Parser[gExpr.ImplicitRef] = positioned {
+  private def implicitRef: Parser[gExpr.ImplicitRef] = positioned {
     gToken.Underscore() ^^^ gExpr.ImplicitRef()
   }
 
-  def assign: Parser[gExpr.Assign] = positioned {
-    (index ~ gToken.Equal() ~ blocklike) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value) }
+  private def assign: Parser[gExpr.Assign] = positioned {
+    (member ~ gToken.Equal() ~ blocklike) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value) }
       | (implicitRef ~ gToken.Equal() ~ blocklike) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value) }
       | (identifier ~ gToken.Equal() ~ blocklike) ^^ { case obj ~ _ ~ value => gExpr.Assign(obj, value) }
   }

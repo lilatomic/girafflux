@@ -8,11 +8,11 @@ import scala.util.parsing.combinator.RegexParsers
 object GLexer extends RegexParsers {
   override def skipWhitespace: Boolean = true
 
-  def litTimeUnit: Parser[LitTimeUnit] = {
+  private def litTimeUnit: Parser[LitTimeUnit] = {
     "(y|mo|w|d|h|m|s|ms|us|µs|ns)".r ^^ { LitTimeUnit.apply }
   }
 
-  def litDateTime: Parser[LitDateTime] = {
+  private def litDateTime: Parser[LitDateTime] = {
     val date = "[0-9]{4}-[0-9]{2}-[0-9]{2}".r ^^ { s => s}
     val time = "[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]*)?((Z)|([+\\-][0-9]{2}:[0-9]{2}))?".r ^^ (s => s)
     val date_time_lit = date ~ opt("T" ~> time) ^^ { case d ~ t => t match
@@ -22,7 +22,7 @@ object GLexer extends RegexParsers {
     date_time_lit
   }
 
-  def literal: Parser[Lit] = {
+  private def literal: Parser[Lit] = {
     val litStr = "\"(?:[^\"\\\\]|\\\\.)*\"".r ^^ { s => LitStr(s.substring(1, s.length - 1)) }
     val litFloat = "-?\\p{Nd}+.\\p{Nd}*".r ^^ {s => LitFloat(s)}
     val litInt = "-?\\p{Nd}+".r ^^ {s => LitInt(s)}
@@ -39,46 +39,46 @@ object GLexer extends RegexParsers {
 
   // text keywords
 
-  def from = "from" ^^ (_ => From())
+  def from: GLexer.Parser[From] = "from" ^^ (_ => From())
 
-  def moduleImport = "import" ^^^ ModuleImport()
+  def moduleImport: GLexer.Parser[ModuleImport] = "import" ^^^ ModuleImport()
 
-  // punctiation keywords
-  def underscore = "_" ^^^ Underscore()
+  // punctuation keywords
+  private def underscore = "_" ^^^ Underscore()
 
-  def period = "." ^^^ Period()
+  private def period = "." ^^^ Period()
 
-  def pipe = "|" ^^ (_ => Pipe())
+  private def pipe = "|" ^^ (_ => Pipe())
 
-  def atpersat = "@" ^^ (_ => Atpersat())
+  private def atpersat = "@" ^^ (_ => Atpersat())
 
-  def hash = "#" ^^ (_ => Hash())
+  private def hash = "#" ^^ (_ => Hash())
 
-  def dollar = "$" ^^^ Dollar()
+  private def dollar = "$" ^^^ Dollar()
 
-  def percent = "%" ^^^ Percent()
+  private def percent = "%" ^^^ Percent()
 
-  def question = "?" ^^ (_ => Question())
+  private def question = "?" ^^ (_ => Question())
 
-  def plus = "+" ^^^ Plus()
+  private def plus = "+" ^^^ Plus()
 
-  def equal = "=" ^^^ Equal()
+  private def equal = "=" ^^^ Equal()
 
-  def bracel = "{" ^^ (_ => BraceL())
+  private def bracel = "{" ^^ (_ => BraceL())
 
-  def bracer = "}" ^^ (_ => BraceR())
+  private def bracer = "}" ^^ (_ => BraceR())
 
-  def bracketl = "[" ^^ (_ => BracketL())
+  private def bracketl = "[" ^^ (_ => BracketL())
 
-  def bracketr = "]" ^^ (_ => BracketR())
+  private def bracketr = "]" ^^ (_ => BracketR())
 
-  def parenl = "(" ^^ (_ => ParenL())
+  private def parenl = "(" ^^ (_ => ParenL())
 
-  def parenr = ")" ^^ (_ => ParenR())
+  private def parenr = ")" ^^ (_ => ParenR())
 
-  def comma = "," ^^^ Comma()
+  private def comma = "," ^^^ Comma()
 
-  def colon = ":" ^^^ Colon()
+  private def colon = ":" ^^^ Colon()
 
   def tokens: GLexer.Parser[List[gToken]] = {
     phrase(rep1(
@@ -96,9 +96,12 @@ object GLexer extends RegexParsers {
   }
 
   def lex(code: String): Either[gLexerError, List[gToken]] = {
+    def error(msg: String, next: Input): Left[gLexerError, Nothing] = Left(gLexerError(Location(next.pos.line, next.pos.column), msg))
     parse(tokens, code) match {
-      case NoSuccess(msg, next) => Left(gLexerError(Location(next.pos.line, next.pos.column), msg))
-      case Success(result, next) => Right(result)
+      case NoSuccess(msg, next) => error(msg, next)
+      case Success(result, _) => Right(result)
+      case Failure(msg, next) => error(msg, next)
+      case Error(msg, next) => error(msg, next)
     }
   }
 }

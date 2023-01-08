@@ -5,7 +5,7 @@ import scala.util.parsing.input.Positional
 sealed trait gToken extends Positional
 
 object gToken {
-  // Indentifiers and references
+  // Identifiers and references
   case class Id(s: String) extends gToken
 
   case class Underscore() extends gToken
