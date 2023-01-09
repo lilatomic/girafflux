@@ -20,7 +20,7 @@ object Renderer {
       case None => l
 
   private def prependToFirst(s: String, l: pStmt): pStmt =
-    Many(List(l, Single(s)))
+    Many(List(Single(s), l))
   //    l match
   //      case ::(head, next) => (s + head) :: next
   //      case Nil => throw PrintingException(s"expected at least 1 item in list")
