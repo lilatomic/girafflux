@@ -21,7 +21,7 @@ class Complete extends munit.FunSuite {
         }
         fAst <- Transformer.transformProgram(gAst)
         fStr <- Right(Renderer.render(fAst))
-        rendered <- Right(Printer.print(fStr).s)
+        rendered <- Right(Printer().print(fStr).s)
       } yield rendered
 
       val expected = sections.getOrElse('u', sections('f')).strip()

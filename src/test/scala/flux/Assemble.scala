@@ -25,7 +25,7 @@ class Assemble extends munit.FunSuite {
       )
     )
     val rendered = Renderer.render(expr)
-    val printed = Printer.print(rendered).s
+    val printed = Printer().print(rendered).s
     assertEquals(printed,
       """from(bucket: "netdatatsdb/autogen")
         |> range(start: -1h)""")
@@ -48,7 +48,7 @@ class Assemble extends munit.FunSuite {
       )
     )
     val rendered = Renderer.render(expr)
-    val printed = Printer.print(rendered).s
+    val printed = Printer().print(rendered).s
     assertEquals(printed,
       """from(bucket: "netdatatsdb/autogen")
 |> range(start: -1h)
@@ -75,7 +75,7 @@ r["_measurement"] == "vpsmetrics"
       )
     )
     val rendered = Renderer.render(expr)
-    val printed = Printer.print(rendered).s
+    val printed = Printer().print(rendered).s
     assertEquals(printed,
       """from(bucket: "netdatatsdb/autogen")
 |> range(start: -1h)
