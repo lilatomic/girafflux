@@ -38,4 +38,6 @@ class Complete extends munit.FunSuite {
 
 
   check("/il/common-queries/iot-common-queries/calculate-time-in-state.test")
+
+  check("/il/universe/filter/filter-based-on-influxdb-measurement-field-and-tag.test")
 }

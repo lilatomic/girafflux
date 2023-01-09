@@ -54,7 +54,7 @@ object gExpr {
 
     case class mapMany(id: Option[ImplicitRef], block: Option[Block], record: gLit.Record) extends gStage
 
-    case class filter(fn: gFunction) extends gStage
+    case class filter(predicate: blocklike) extends gStage
 
     case class filterMeasurement(_measurement: blocklike) extends gStage
 

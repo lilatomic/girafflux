@@ -78,7 +78,7 @@ object GParser extends Parsers {
   }
 
   private def stage: Parser[gExpr.gStage] = positioned {
-    (gToken.Pipe() ~ (stageStreamMap | stageFilterMeasurement | stageFilterField | stageRange | stageMap | stageMapMany)) ^^ { case _ ~ s => s }
+    (gToken.Pipe() ~ (stageStreamMap | stageFilterMeasurement | stageFilterField | stageFilter | stageRange | stageMap | stageMapMany)) ^^ { case _ ~ s => s }
   }
 
   private def stageStreamMap: Parser[gExpr.gStage.streamMap] = positioned {
@@ -102,6 +102,10 @@ object GParser extends Parsers {
         case i :: Nil => gExpr.gStage.filterField(i)
         case _ => gExpr.gStage.filterFieldMany(is)
       )
+  }
+
+  private def stageFilter: Parser[gExpr.gStage.filter] = positioned {
+    (gToken.Question() ~> blocklike) ^^ {gExpr.gStage.filter.apply}
   }
 
   private def stageMap: Parser[gExpr.gStage.map] = positioned {

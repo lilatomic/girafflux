@@ -49,7 +49,13 @@ object Transformer {
         fExpr.|>(fExpr.Call(fExpr.Identifier(fToken("range")), args))
       case v: gStage.map => Helpers.fMap(v)
       case v: gStage.mapMany => Helpers.fMapMany(v)
-      case gStage.filter(fn) => ???
+      case gStage.filter(fn) => fExpr.|>(
+        Func.filter(
+          fExpr.Function(
+            List(fToken("r")), g2fBlocklike(fn)
+          )
+        )
+      )
       case gStage.filterMeasurement(_measurement) =>
         val measurementExpr = g2fBlocklike(reduceBlock(_measurement))
         Helpers.fFilterEqual("_measurement", measurementExpr)
