@@ -13,30 +13,30 @@ object Transformer {
     Right(g2f(expr))
   }
 
-  def g2f(g: gExpr.Script): fExpr.Script = fExpr.Script(imports = g.imports.map(g2f), queries = g.queries.map(g2f))
+  private def g2f(g: gExpr.Script): fExpr.Script = fExpr.Script(imports = g.imports.map(g2f), queries = g.queries.map(g2f))
 
-  def g2f(g: gExpr.Id): fExpr.Identifier = fExpr.Identifier(fToken(g.tok.s))
+  private def g2f(g: gExpr.Id): fExpr.Identifier = fExpr.Identifier(fToken(g.tok.s))
 
-  def g2f(g: gExpr.From): fExpr.From = fExpr.From(g2f(g.bucket))
+  private def g2f(g: gExpr.From): fExpr.From = fExpr.From(g2f(g.bucket))
 
-  def g2f(g: gExpr.gLit.Str): fLit.Str = fLit.Str(fToken(g.tok.s))
+  private def g2f(g: gExpr.gLit.Str): fLit.Str = fLit.Str(fToken(g.tok.s))
 
-  def g2f(g: gExpr.gLit.Int): fLit.Integer = fLit.Integer(fToken(g.tok.i))
+  private def g2f(g: gExpr.gLit.Int): fLit.Integer = fLit.Integer(fToken(g.tok.i))
 
-  def g2f(g: gExpr.gLit.Float): fLit.Float = fLit.Float(fToken(g.tok.f))
+  private def g2f(g: gExpr.gLit.Float): fLit.Float = fLit.Float(fToken(g.tok.f))
 
-  def g2f(g: gExpr.gLit.Duration): fLit.Duration =
+  private def g2f(g: gExpr.gLit.Duration): fLit.Duration =
     val value = g.tok.value match
       case f: gToken.LitFloat => f.f
       case i: gToken.LitInt => i.i
 
     fLit.Duration(fToken(s"$value${g.tok.unit.u}"))
 
-  def g2f(g: gExpr.ModuleImport): fExpr.ModuleImport = fExpr.ModuleImport(g2f(g.module))
+  private def g2f(g: gExpr.ModuleImport): fExpr.ModuleImport = fExpr.ModuleImport(g2f(g.module))
 
-  def g2f(g: gExpr.Query): fExpr.Query = fExpr.Query(g2f(g.from), g.ops.map(g2f))
+  private def g2f(g: gExpr.Query): fExpr.Query = fExpr.Query(g2f(g.from), g.ops.map(g2f))
 
-  def g2f(g: gExpr.gStage): fExpr.|> =
+  private def g2f(g: gExpr.gStage): fExpr.|> =
     g match
       case gStage.range(start, stop) =>
         val argStart = fExpr.Arg(fToken("start"), g2fBlocklike(start))
@@ -61,7 +61,7 @@ object Transformer {
         reduceBlock(block) match
           case v: gExpr.Call => fExpr.|>(g2f(v))
 
-  def reduceBlock(e: gExpr.blocklike): gExpr.blocklike =
+  private def reduceBlock(e: gExpr.blocklike): gExpr.blocklike =
     e match
       case b: gExpr.Block =>
         b.exprs match
@@ -77,7 +77,7 @@ object Transformer {
       fExpr.Block(g.exprs.map(g2fBlocklike))
     }
 
-  def g2fLit(g: gExpr.gLit): fLit =
+  private def g2fLit(g: gExpr.gLit): fLit =
     g match
       case v: gExpr.gLit.Str => g2f(v)
       case v: gExpr.gLit.Float => g2f(v)
@@ -92,6 +92,7 @@ object Transformer {
       g.items.map((k, v) => fExpr.Identifier(fToken(k.tok.s)) -> g2fBlocklike(v))
     )
 
+  @tailrec
   def g2fBlocklike(g: gExpr.blocklike): fExpr =
     g match
       case v: gExpr.Call => g2fCall(v)
@@ -102,9 +103,9 @@ object Transformer {
       case v: gExpr.Block => g2fBlocklike(reduceBlock(v))
       case v: gExpr.ImplicitRef => resolveImplicitRef(v)
 
-  def g2f(g: gExpr.Call): fExpr.Call = fExpr.Call(g2fBlocklike(g.callee), g.args.map(g2f))
+  private def g2f(g: gExpr.Call): fExpr.Call = fExpr.Call(g2fBlocklike(g.callee), g.args.map(g2f))
 
-  def g2fCall(g: gExpr.Call): fExpr =
+  private def g2fCall(g: gExpr.Call): fExpr =
     @tailrec
     def getMemberChain(m: gExpr.Member, acc: List[gExpr.Id | gExpr.gLit.Str] = List()): (gExpr.assignable, List[gExpr.Id | gExpr.gLit.Str]) =
       m.obj match
@@ -120,13 +121,13 @@ object Transformer {
           case _ => fExpr.Call(g2fBlocklike(g.callee), g.args.map(g2f))
       case _ => fExpr.Call(g2fBlocklike(g.callee), g.args.map(g2f))
 
-  def mkOp2(s: mkOp2, g: gExpr.Call) =
+  private def mkOp2(s: mkOp2, g: gExpr.Call) =
     s(
       g2fBlocklike(g.args(0).value),
       g2fBlocklike(g.args(1).value)
     )
 
-  def transformMathlike(chain: List[gExpr.Id | gExpr.gLit.Str], g: gExpr.Call): fExpr =
+  private def transformMathlike(chain: List[gExpr.Id | gExpr.gLit.Str], g: gExpr.Call): fExpr =
     val s = chain.head match
       case v: gExpr.Id => v.tok.s
       case v: gExpr.gLit.Str => v.tok.s
@@ -140,7 +141,7 @@ object Transformer {
       case "mod" => Ops.modulo
     mkOp2(op, g)
 
-  def transformCmplike(chain: List[gExpr.Id | gExpr.gLit.Str], g: gExpr.Call): fExpr =
+  private def transformCmplike(chain: List[gExpr.Id | gExpr.gLit.Str], g: gExpr.Call): fExpr =
     val s = chain.head match
       case v: gExpr.Id => v.tok.s
       case v: gExpr.gLit.Str => v.tok.s
@@ -156,23 +157,23 @@ object Transformer {
       case "regex_ne" => Ops.regex_ne
     mkOp2(op, g)
 
-  def g2f(g: gExpr.Arg): fExpr.Arg = fExpr.Arg(fToken(g.name.tok.s), g2fBlocklike(g.value))
+  private def g2f(g: gExpr.Arg): fExpr.Arg = fExpr.Arg(fToken(g.name.tok.s), g2fBlocklike(g.value))
 
-  def g2f(g: gExpr.blocklike | gExpr.gBuiltin.Now.type): fExpr =
+  private def g2f(g: gExpr.blocklike | gExpr.gBuiltin.Now.type): fExpr =
     g match
       case v: gExpr.gBuiltin.Now.type => g2f(v)
       case v: gExpr.blocklike => g2fBlocklike(v)
 
-  def g2f(g: gExpr.gBuiltin.Now.type): fExpr = fLit.Str(fToken("now"))
+  private def g2f(g: gExpr.gBuiltin.Now.type): fExpr = fLit.Str(fToken("now"))
 
-  def g2f(g: gExpr.Assign): fExpr.Assign =
+  private def g2f(g: gExpr.Assign): fExpr.Assign =
     val obj = g.obj match
       case v: gExpr.ImplicitRef => resolveImplicitRef(v)
       case v: gExpr.Member => g2f(v)
       case v: gExpr.Id => g2f(v)
     fExpr.Assign(obj, g2fBlocklike(g.value))
 
-  def g2f(g: gExpr.Member): fExpr.Member =
+  private def g2f(g: gExpr.Member): fExpr.Member =
     fExpr.Member(
       g2f(g.obj),
       g.value match
@@ -180,7 +181,7 @@ object Transformer {
         case v: gExpr.gLit.Str => g2f(v)
     )
 
-  def resolveImplicitRef(g: gExpr.ImplicitRef): fExpr =
+  private def resolveImplicitRef(g: gExpr.ImplicitRef): fExpr =
   // TODO: some actual logic, we won't always be in a map
     fExpr.Identifier(fToken("r"))
 }
