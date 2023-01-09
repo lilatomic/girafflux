@@ -61,10 +61,10 @@ object Renderer {
     expr match
       case fExpr.Query(from, ops) => render(from) ++ Many(ops.map(render(_)))
       case fExpr.From(bucket) => Single(s"from(bucket: \"${l(bucket.tok).stmt}\")")
-      case fExpr.|>(inv) => prependToFirst("|>", render(inv))
+      case fExpr.|>(inv) => Single("|>", lineBreak = LineBreak.Before) ++ render(inv)
       case fExpr.Call(op, args) =>
         Many(List(render(op), Parenthesised(Many(args.map(render(_))), begin = Some("("), end = Some(")"), sep = Some(","))))
-      case fExpr.Arg(name, value) => prependToFirst(s"${l(name).stmt}: ", render(value, indent))
+      case fExpr.Arg(name, value) => prependToFirst(s"${l(name).stmt}:", render(value, indent))
       case fExpr.Identifier(tok) => l(tok)
       case v: fExpr.Function => printFunction(v, indent)
       case fExpr.Op1(op, a0) => l(op) ++ render(a0, indent)

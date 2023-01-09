@@ -16,11 +16,20 @@ case class Printer(lineLength: Int = 120) {
             } else {
               Print(renders.map(_.s).mkString("\n"), singleLine = false)
             }
-      case Single(stmt) => Print(stmt)
+      case v: Single => renderOne(v)
       case Parenthesised(stmts, sep, begin, end) =>
         val rs = stmts match
           case Many(stmts) => stmts.map(print)
           case _ => List(print(stmts))
         val joined = rs.map(_.s).mkString(sep.getOrElse(""))
         Print(begin.getOrElse("") + joined + end.getOrElse(""))
+
+  private def renderOne(p: Single): Print = {
+    val withLineBreak =
+      p.lineBreak match
+        case LineBreak.Before => Print("\n" + p.stmt, singleLine = false)
+        case LineBreak.After => Print(p.stmt + "\n", singleLine = false)
+        case LineBreak.Neutral => Print(p.stmt, singleLine = p.stmt.contains("\n"))
+    withLineBreak
+  }
 }
