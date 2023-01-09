@@ -1,37 +1,40 @@
 package flux
 
-final class PrintingException(arg: String) extends RuntimeException
+import scala.annotation.unused
+
+final class PrintingException(@unused arg: String) extends RuntimeException
 
 object Printer {
 
   private def l(l: fToken): String = l.lexeme
 
+  @unused
   private def single(l: List[String]): String =
     l match
       case head :: Nil => head
       case _ => throw PrintingException(s"expected 1 item in list, got ${l.size}")
 
-  def prependOptionToList(a: Option[String], l: List[String]): List[String] =
+  private def prependOptionToList(a: Option[String], l: List[String]): List[String] =
     a match
       case Some(v) => v :: l
       case None => l
 
-  def appendOptionToList(l: List[String], a: Option[String]): List[String] =
+  private def appendOptionToList(l: List[String], a: Option[String]): List[String] =
     a match
       case Some(v) => l :+ v
       case None => l
 
-  def prependToFirst(s: String, l: List[String]): List[String] =
+  private def prependToFirst(s: String, l: List[String]): List[String] =
     l match
       case ::(head, next) => (s + head) :: next
       case Nil => throw PrintingException(s"expected at least 1 item in list")
 
-  def appendToLast(l: List[String], s: String): List[String] =
+  private def appendToLast(l: List[String], s: String): List[String] =
     l match
       case Nil => throw PrintingException(s"expected at least 1 item in list")
       case _ => l.init :+ (l.last + s)
 
-  def parenthesised(open: String, items: List[List[String]], separator: String, close: String): List[String] =
+  private def parenthesised(open: String, items: List[List[String]], separator: String, close: String): List[String] =
     items match
       case Nil => List(open + close)
       case item :: Nil => coalesceSingle(item, Some(open), Some(close))
@@ -111,5 +114,9 @@ object Printer {
       case fLit.Array(elems) =>
         parenthesised("[", elems.map(print(_, indent)), ",", "]")
       case fLit.Record(body) => coalesceSingle(print(body), start=Some("{"), end=Some("}"))
-      case fLit.Dict(elems) => ???
+      case fLit.Dict(elems) => if (elems.isEmpty) {
+        List("[:]")
+      } else {
+        parenthesised("[", elems.map { (k, v) => coalesceSingles(print(k), print(v), sep = ":") }.toList, separator = ",", close="]")
+      }
 }

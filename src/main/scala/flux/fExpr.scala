@@ -1,5 +1,6 @@
 package flux
 
+import scala.annotation.targetName
 import scala.quoted.Expr
 
 
@@ -14,6 +15,7 @@ object fExpr {
 
   case class From(bucket: fExpr.Identifier) extends fExpr
 
+  @targetName("pipe")
   case class |>(inv: Call) extends fExpr
 
   case class Call(op: fExpr, args: List[Arg]) extends fExpr // TODO: maybe tighten
