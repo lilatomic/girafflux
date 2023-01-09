@@ -36,7 +36,12 @@ object GParser extends Parsers {
   }
 
   private def query: Parser[gExpr.Query] = positioned {
-    (gToken.From() ~ identifier ~ stages) ^^ { case _ ~ bucket ~ stages => gExpr.Query(gExpr.From(bucket), stages) }
+    (gToken.From() ~ (identifier| litStr) ~ stages) ^^ { case _ ~ bucket ~ stages =>
+      val bucketName = bucket match
+        case v: gExpr.Id => gExpr.gLit.Str(gToken.LitStr(v.tok.s))
+        case v: gExpr.gLit.Str => v
+      gExpr.Query(gExpr.From(bucketName), stages)
+    }
   }
 
   private def blockMany = {

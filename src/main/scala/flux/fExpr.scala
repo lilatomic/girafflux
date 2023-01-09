@@ -13,7 +13,7 @@ object fExpr {
 
   case class Query(from: From, ops: List[|>]) extends fExpr
 
-  case class From(bucket: fExpr.Identifier) extends fExpr
+  case class From(bucket: fLit.Str) extends fExpr
 
   @targetName("pipe")
   case class |>(inv: Call) extends fExpr

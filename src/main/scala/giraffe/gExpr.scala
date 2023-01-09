@@ -21,7 +21,7 @@ object gExpr {
 
   case class Query(from: From, ops: List[gStage]) extends gExpr
 
-  case class From(bucket: Id) extends gExpr
+  case class From(bucket: gLit.Str) extends gExpr
 
   case class ModuleImport(module: gLit.Str, as: Option[gLit.Str] = None) extends gExpr
 
