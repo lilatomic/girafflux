@@ -1,6 +1,6 @@
 package il
 
-import flux.Printer
+import flux.{Renderer, Printer}
 import giraffe.{GLexer, GParser}
 
 import scala.io.Source
@@ -12,7 +12,7 @@ class Complete extends munit.FunSuite {
       val file = Source.fromInputStream(getClass.getResourceAsStream(filename)).mkString
       val sections = file.split("---").filter(_.nonEmpty).map(section => section(0) -> section.substring(1)).toMap
 
-      val fStr = for {
+      val rendered = for {
         gTokens <- GLexer.lex(sections('g'))
         gAst <- {
           val o = GParser.parse(gTokens)
@@ -20,13 +20,14 @@ class Complete extends munit.FunSuite {
           o
         }
         fAst <- Transformer.transformProgram(gAst)
-        fStr <- Right(Printer.print(fAst))
-      } yield fStr
+        fStr <- Right(Renderer.render(fAst))
+        rendered <- Right(Printer.print(fStr).s)
+      } yield rendered
 
       val expected = sections.getOrElse('u', sections('f')).strip()
 
       // ---
-      val obtained = fStr.map(_.mkString("\n")).getOrElse("").strip()
+      val obtained = rendered.getOrElse("").strip()
       pprint.pprintln(obtained)
       assertEquals(obtained, expected)
     }

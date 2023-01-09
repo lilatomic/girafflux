@@ -24,10 +24,11 @@ class Assemble extends munit.FunSuite {
         )))
       )
     )
-    val printed = Printer.print(expr).mkString("\n")
+    val rendered = Renderer.render(expr)
+    val printed = Printer.print(rendered).s
     assertEquals(printed,
-"""from(bucket: "netdatatsdb/autogen")
-|> range(start: -1h)""")
+      """from(bucket: "netdatatsdb/autogen")
+        |> range(start: -1h)""")
   }
   test("assemble - inline lambda") {
     val expr = Query(
@@ -46,9 +47,10 @@ class Assemble extends munit.FunSuite {
         )))
       )
     )
-    val printed = Printer.print(expr).mkString("\n")
+    val rendered = Renderer.render(expr)
+    val printed = Printer.print(rendered).s
     assertEquals(printed,
-"""from(bucket: "netdatatsdb/autogen")
+      """from(bucket: "netdatatsdb/autogen")
 |> range(start: -1h)
 |> filter(
 fn: (r) =>
@@ -56,7 +58,7 @@ r["_measurement"] == "vpsmetrics"
 )""")
   }
 
-  test("assemble - with helpers"){
+  test("assemble - with helpers") {
     val expr = Query(
       From(fLit.Str(fToken(bucketName))),
       List(
@@ -67,14 +69,15 @@ r["_measurement"] == "vpsmetrics"
           Ops.eq(Member(Identifier(fToken("r")), fLit.Str(fToken("_field"))), fLit.Str(fToken("pcpu"))),
           Ops.gt(Member(Identifier(fToken("r")), fLit.Str(fToken("_value"))), fLit.Integer(fToken("80"))),
         ))),
-        |>(sort(fLit.Array(List(fLit.Str(fToken("_value")))), desc=Some(fLit.Boolean(fToken("true"))))),
+        |>(sort(fLit.Array(List(fLit.Str(fToken("_value")))), desc = Some(fLit.Boolean(fToken("true"))))),
         |>(limit(fLit.Integer(fToken("10")))),
         |>(Yield())
       )
     )
-    val printed = Printer.print(expr).mkString("\n")
+    val rendered = Renderer.render(expr)
+    val printed = Printer.print(rendered).s
     assertEquals(printed,
-"""from(bucket: "netdatatsdb/autogen")
+      """from(bucket: "netdatatsdb/autogen")
 |> range(start: -1h)
 |> filter(
 fn: (r) =>
