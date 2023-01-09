@@ -60,11 +60,11 @@ object Renderer {
   def render(expr: fExpr, indent: Int = 0): pStmt =
     expr match
       case fExpr.Query(from, ops) => render(from) ++ Many(ops.map(render(_)))
-      case fExpr.From(bucket) => Single(s"from(bucket: \"${l(bucket.tok)}\")")
-      case fExpr.|>(inv) => prependToFirst("|> ", render(inv))
+      case fExpr.From(bucket) => Single(s"from(bucket: \"${l(bucket.tok).stmt}\")")
+      case fExpr.|>(inv) => prependToFirst("|>", render(inv))
       case fExpr.Call(op, args) =>
         Many(List(render(op), Parenthesised(Many(args.map(render(_))), begin = Some("("), end = Some(")"), sep = Some(","))))
-      case fExpr.Arg(name, value) => prependToFirst(s"${l(name)}: ", render(value, indent))
+      case fExpr.Arg(name, value) => prependToFirst(s"${l(name).stmt}: ", render(value, indent))
       case fExpr.Identifier(tok) => l(tok)
       case v: fExpr.Function => printFunction(v, indent)
       case fExpr.Op1(op, a0) => l(op) ++ render(a0, indent)
@@ -98,7 +98,7 @@ object Renderer {
         coalesceSingles(render(identifier), render(propertyList), sep = " with ")
 
   private def printFunction(v: fExpr.Function, indent: Int): pStmt =
-    Single(s"(${v.params.map(l).mkString(",")}) =>") ++ render(v.body, indent)
+    Single(s"(${v.params.map(l).map(_.stmt).mkString(",")}) =>") ++ render(v.body, indent)
 
   private def printOp2(op: fExpr.Op2, indent: Int): pStmt =
     Many(List(render(op.a0, indent), l(op.op), render(op.a1, indent)))
@@ -110,8 +110,8 @@ object Renderer {
       case fLit.Float(tok) => l(tok)
       case fLit.Duration(tok) => l(tok)
       case fLit.DateTime(tok) => l(tok)
-      case fLit.Str(tok) => Single(s"\"${l(tok)}\"")
-      case fLit.Regex(tok) => Single(s"/${l(tok)}/")
+      case fLit.Str(tok) => Single(s"\"${l(tok).stmt}\"")
+      case fLit.Regex(tok) => Single(s"/${l(tok).stmt}/")
       case fLit.Array(elems) =>
         parenthesised("[", Many(elems.map(render(_, indent))), ",", "]")
       case fLit.Record(body) => Parenthesised(render(body), begin = Some("{"), end = Some("}"))
