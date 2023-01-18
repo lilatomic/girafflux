@@ -78,13 +78,11 @@ object Renderer {
 
       case lit: fLit => printLit(lit, indent)
       case fExpr.Script(imports, queries) =>
-        coalesceSingles(
-          Many(imports.map { i => render(i, indent) }),
-          Many(queries.map(q => render(q, indent))),
-          sep = ""
-        )
+          Many(imports.map { i => render(i, indent) })
+            ++ Newline
+            ++ Many(queries.map(q => render(q, indent)))
       case fExpr.ModuleImport(module) =>
-        prependToFirst("import ", render(module))
+        Single("import") ++ Space ++ render(module) ++ Newline
       case fExpr.Block(exprs) => coalesceSingle(Many(exprs.map(render(_, indent))), start = Some("{"), end = Some("}"))
       case fExpr.Assign(obj, value) => coalesceSingles(
         render(obj), render(value), sep = "="
