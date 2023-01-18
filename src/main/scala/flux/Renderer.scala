@@ -33,7 +33,7 @@ object Renderer {
       case _ => l.init :+ (l.last + s)
 
   private def parenthesised(open: String, items: Many, separator: String, close: String): Parenthesised =
-    Parenthesised(items, begin = Some(open), end = Some(close), sep = None)
+    Parenthesised(items, begin = Some(open), end = Some(close), sep = Some(separator))
 
   private def coalesceSingles(s0: pStmt, s1: pStmt, sep: String, start: Option[String] = None, end: Option[String] = None): Parenthesised =
     Parenthesised(
@@ -83,7 +83,11 @@ object Renderer {
             ++ Many(queries.map(q => render(q, indent)))
       case fExpr.ModuleImport(module) =>
         Single("import") ++ Space ++ render(module) ++ Newline
-      case fExpr.Block(exprs) => coalesceSingle(Many(exprs.map(render(_, indent))), start = Some("{"), end = Some("}"))
+      case fExpr.Block(exprs) =>
+        Parenthesised(
+          Many(exprs.map(render(_, indent))),
+            sep=Some("\n"), begin=Some("{"), end=Some("}")
+        )
       case fExpr.Assign(obj, value) => coalesceSingles(
         render(obj), render(value), sep = "="
       )
@@ -93,7 +97,7 @@ object Renderer {
           (k: fExpr.Identifier, v: fExpr) =>
             coalesceSingles(render(k), render(v), sep = ": ")
         }.toList),
-        ",", "")
+        ", ", "")
       case fExpr.WithProperties(identifier, propertyList) =>
         render(identifier) ++ Space ++ Single("with") ++ Space ++ render(propertyList)
   //        coalesceSingles(render(identifier), render(propertyList), sep = " with ")
@@ -116,7 +120,7 @@ object Renderer {
       case fLit.Str(tok) => Single(s"\"${l(tok).stmt}\"")
       case fLit.Regex(tok) => Single(s"/${l(tok).stmt}/")
       case fLit.Array(elems) =>
-        parenthesised("[", Many(elems.map(render(_, indent))), ",", "]")
+        parenthesised("[", Many(elems.map(render(_, indent))), ", ", "]")
       case fLit.Record(body) => Parenthesised(render(body), begin = Some("{"), end = Some("}"))
       case fLit.Dict(elems) => if (elems.isEmpty) {
         Single("[:]")
