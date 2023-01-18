@@ -35,30 +35,6 @@ object Renderer {
   private def parenthesised(open: String, items: Many, separator: String, close: String): Parenthesised =
     Parenthesised(items, begin = Some(open), end = Some(close), sep = Some(separator))
 
-  private def coalesceSingles(s0: pStmt, s1: pStmt, sep: String, start: Option[String] = None, end: Option[String] = None): Parenthesised =
-    Parenthesised(
-      Many(List(s0, s1)),
-      sep = Some(sep),
-      begin = start,
-      end = end
-    )
-  //
-  //    s0 match
-  //      case head0 :: Nil =>
-  //        s1 match
-  //          case head1 :: Nil => List(start.getOrElse("") + head0 + sep + head1 + end.getOrElse(""))
-  //          case _ => (start.getOrElse("") + head0 + sep) :: appendOptionToList(s1, end)
-  //      case _ =>
-  //        s1 match
-  //          case head1 :: Nil => prependOptionToList(start, s0) :+ (sep + head1 + end.getOrElse(""))
-  //          case _ => prependOptionToList(start, s0) ++ (sep :: appendOptionToList(s1, end))
-
-  private def coalesceSingle(s0: Many, start: Option[String] = None, end: Option[String] = None): pStmt =
-    Parenthesised(s0, sep = None, begin = start, end = end)
-  //    s0.stmts match
-  //      case head0 :: Nil => List(head0, start.getOrElse("") + head0 + end.getOrElse(""))
-  //      case _ => appendOptionToList(prependOptionToList(start, s0), end)
-
   def render(expr: fExpr, indent: Int = 0): pStmt =
     expr match
       case fExpr.Query(from, ops) => render(from) ++ Many(ops.map(render(_)))
@@ -73,8 +49,18 @@ object Renderer {
       case v: fExpr.Op2 => printOp2(v, indent)
       case fExpr.Member(obj, value) =>
         value match
-          case _: fExpr.Identifier => coalesceSingles(render(obj, indent), render(value, indent), ".")
-          case _: fLit.Str => coalesceSingles(render(obj, indent), render(value, indent), "[", end = Some("]"))
+          case _: fExpr.Identifier => Parenthesised(
+            Many(List(render(obj, indent), render(value, indent))),
+            sep = Some("."),
+            begin = None,
+            end = None
+          )
+          case _: fLit.Str => Parenthesised(
+            Many(List(render(obj, indent), render(value, indent))),
+            sep = Some("["),
+            begin = None,
+            end = Some("]")
+          )
 
       case lit: fLit => printLit(lit, indent)
       case fExpr.Script(imports, queries) =>
@@ -88,14 +74,22 @@ object Renderer {
           Many(exprs.map(render(_, indent))),
             sep=Some("\n"), begin=Some("{"), end=Some("}")
         )
-      case fExpr.Assign(obj, value) => coalesceSingles(
-        render(obj), render(value), sep = "="
+      case fExpr.Assign(obj, value) => Parenthesised(
+        Many(List(render(obj), render(value))),
+        sep = Some("="),
+        begin = None,
+        end = None
       )
       case fExpr.Return(body) => prependToFirst("return ", render(body))
       case fExpr.PropertyList(elems) => parenthesised("",
         Many(elems.map {
           (k: fExpr.Identifier, v: fExpr) =>
-            coalesceSingles(render(k), render(v), sep = ": ")
+            Parenthesised(
+              Many(List(render(k), render(v))),
+              sep = Some(": "),
+              begin = None,
+              end = None
+            )
         }.toList),
         ", ", "")
       case fExpr.WithProperties(identifier, propertyList) =>
@@ -125,6 +119,13 @@ object Renderer {
       case fLit.Dict(elems) => if (elems.isEmpty) {
         Single("[:]")
       } else {
-        parenthesised("[", Many(elems.map { (k, v) => coalesceSingles(render(k), render(v), sep = ":") }.toList), separator = ",", close = "]")
+        parenthesised("[", Many(elems.map { (k, v) =>
+          Parenthesised(
+            Many(List(render(k), render(v))),
+            sep = Some(":"),
+            begin = None,
+            end = None
+          )
+        }.toList), separator = ",", close = "]")
       }
 }
