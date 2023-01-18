@@ -1,0 +1,13 @@
+---g
+from machine
+|. {
+    totalTime = float(v: math.add(a0: _.NOK, a1: _.OK))
+    {
+        NOK: math.mul(a0: math.div(a0: float(v: r.NOK), a1: totalTime), a1: 100.0),
+        OK: math.mul(a0: math.div(a0: float(v: r.OK), a1: totalTime), a1: 100.0)
+    }
+}
+---u
+from(bucket: "machine")
+|> map(fn: (r) =>{totalTime=float(v: (r.NOK + r.OK))
+return {r with NOK: ((float(v: r.NOK) / totalTime) * 100.0), OK: ((float(v: r.OK) / totalTime) * 100.0)}})
