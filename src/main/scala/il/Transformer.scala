@@ -209,13 +209,12 @@ object Helpers {
       case i: gExpr.Id => i.tok.s
     fExpr.|>(
       Func.map(
-        fExpr.Op2(
-          fToken("with"),
-          fExpr.Identifier(fToken("r")),
-          fExpr.Op2(
-            fToken(":"),
-            fExpr.Identifier(fToken(target)),
-            Transformer.g2fBlocklike(v.expr)
+        fLit.Record(
+          fExpr.WithProperties(
+            fExpr.Identifier(fToken("r")),
+            fExpr.PropertyList(Map(
+              fExpr.Identifier(fToken(target)) -> Transformer.g2fBlocklike(v.expr)
+            ))
           )
         )
       )

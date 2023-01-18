@@ -1,7 +1,9 @@
 package flux
 
-import scala.annotation.unused
+import flux.WhiteSpace.{Newline, Space}
 import flux.pStmt
+
+import scala.annotation.unused
 
 final class PrintingException(@unused arg: String) extends RuntimeException
 
@@ -61,10 +63,10 @@ object Renderer {
     expr match
       case fExpr.Query(from, ops) => render(from) ++ Many(ops.map(render(_)))
       case fExpr.From(bucket) => Single(s"from(bucket: \"${l(bucket.tok).stmt}\")")
-      case fExpr.|>(inv) => Single("|>", lineBreak = LineBreak.Before) ++ render(inv)
+      case fExpr.|>(inv) => Newline ++ Single("|>") ++ Space ++ render(inv)
       case fExpr.Call(op, args) =>
         Many(List(render(op), Parenthesised(Many(args.map(render(_))), begin = Some("("), end = Some(")"), sep = Some(","))))
-      case fExpr.Arg(name, value) => prependToFirst(s"${l(name).stmt}:", render(value, indent))
+      case fExpr.Arg(name, value) => Single(l(name).stmt) ++ Single(":") ++ Space ++ render(value, indent)
       case fExpr.Identifier(tok) => l(tok)
       case v: fExpr.Function => printFunction(v, indent)
       case fExpr.Op1(op, a0) => l(op) ++ render(a0, indent)
@@ -79,7 +81,7 @@ object Renderer {
         coalesceSingles(
           Many(imports.map { i => render(i, indent) }),
           Many(queries.map(q => render(q, indent))),
-          sep = "\n"
+          sep = ""
         )
       case fExpr.ModuleImport(module) =>
         prependToFirst("import ", render(module))
@@ -95,13 +97,15 @@ object Renderer {
         }.toList),
         ",", "")
       case fExpr.WithProperties(identifier, propertyList) =>
-        coalesceSingles(render(identifier), render(propertyList), sep = " with ")
+        render(identifier) ++ Space ++ Single("with") ++ Space ++ render(propertyList)
+  //        coalesceSingles(render(identifier), render(propertyList), sep = " with ")
 
   private def printFunction(v: fExpr.Function, indent: Int): pStmt =
     Single(s"(${v.params.map(l).map(_.stmt).mkString(",")}) =>") ++ render(v.body, indent)
 
-  private def printOp2(op: fExpr.Op2, indent: Int): pStmt =
-    Many(List(render(op.a0, indent), l(op.op), render(op.a1, indent)))
+  private def printOp2(op: fExpr.Op2, indent: Int, space: Boolean = true): pStmt =
+    val printedOp = if (space) Space ++ l(op.op) ++ Space else l(op.op)
+    Many(List(render(op.a0, indent), printedOp, render(op.a1, indent)))
 
   private def printLit(lit: fLit, indent: Int): pStmt =
     lit match
