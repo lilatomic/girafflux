@@ -97,7 +97,8 @@ object Renderer {
   //        coalesceSingles(render(identifier), render(propertyList), sep = " with ")
 
   private def printFunction(v: fExpr.Function, indent: Int): pStmt =
-    Single(s"(${v.params.map(l).map(_.stmt).mkString(",")}) =>") ++ render(v.body, indent)
+    val argList = Parenthesised(Many(v.params.map(l).map(_.stmt).map{ Single.apply }), begin=Some("("), end = Some(")"), sep=Some(", "))
+    argList ++ Space ++ Single("=>") ++ Space ++ render(v.body, indent)
 
   private def printOp2(op: fExpr.Op2, indent: Int, space: Boolean = true, parens: Boolean = true): pStmt =
     val printedOp = if (space) Space ++ l(op.op) ++ Space else l(op.op)
