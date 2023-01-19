@@ -41,7 +41,7 @@ object Renderer {
       case fExpr.From(bucket) => Single(s"from(bucket: \"${l(bucket.tok).stmt}\")")
       case fExpr.|>(inv) => Indent(Newline ++ Single("|>") ++ Space ++ render(inv))
       case fExpr.Call(op, args) =>
-        Many(List(render(op), Parenthesised(Many(args.map((expr: fExpr.Arg) => render(expr))), begin = Some(Single("(")), end = Some(Single(")")), sep = Some(Single(",")))))
+        Many(List(render(op), Parenthesised(Many(args.map((expr: fExpr.Arg) => render(expr))), begin = Some(Single("(")), end = Some(Single(")")), sep = Some(Single(",") ++ Space))))
       case fExpr.Arg(name, value) => Single(l(name).stmt) ++ Single(":") ++ Space ++ render(value)
       case fExpr.Identifier(tok) => l(tok)
       case v: fExpr.Function => printFunction(v)
@@ -113,11 +113,12 @@ object Renderer {
       case fLit.Dict(elems) => if (elems.isEmpty) {
         Single("[:]")
       } else {
-        parenthesised("[", Many(elems.map { (k, v) =>
+        Parenthesised(Many(elems.map { (k, v) =>
           Parenthesised(
             Many(List(render(k), render(v))),
             sep = Some(Single(":")),
           )
-        }.toList), separator = ",", close = "]")
+        }.toList), sep = Some(Single(",") ++ Space), begin = Some(Single("[")), end = Some(Single("]"))
+        )
       }
 }
