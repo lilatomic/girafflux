@@ -2,9 +2,9 @@ package flux
 
 case class Print(s: String, singleLine: Boolean = true)
 
-case class PrintContext()
+case class PrintContext(indent: Int = 0)
 
-case class Printer(lineLength: Int = 120) {
+case class Printer(lineLength: Int = 120, indent: String = "\t") {
 
   def print(pStmt: pStmt): Print = p(pStmt, PrintContext())
 
@@ -16,7 +16,7 @@ case class Printer(lineLength: Int = 120) {
           case Nil => Print("")
           case one :: Nil => one
           case _ =>
-            if (renders.map(_.s).map(_.length).sum < lineLength){
+            if (renders.map(_.s).map(_.length).sum < lineLength) {
               Print(renders.map(_.s).mkString(""))
             } else {
               Print(renders.map(_.s).mkString(""), singleLine = false)
@@ -30,8 +30,9 @@ case class Printer(lineLength: Int = 120) {
         Print(begin.getOrElse("") + joined + end.getOrElse(""))
       case s: WhiteSpace =>
         s match
-          case WhiteSpace.Newline => Print("\n", singleLine = false)
+          case WhiteSpace.Newline => Print("\n" + indent * ctx.indent, singleLine = false)
           case WhiteSpace.Space => Print(" ")
+      case Indent(stmt, increase) => p(stmt, ctx.copy(indent = ctx.indent + increase))
 
   private def renderOne(p: Single): Print = {
     Print(p.stmt)

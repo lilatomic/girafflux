@@ -39,7 +39,7 @@ object Renderer {
     expr match
       case fExpr.Query(from, ops) => render(from) ++ Many(ops.map((expr: fExpr.|>) => render(expr)))
       case fExpr.From(bucket) => Single(s"from(bucket: \"${l(bucket.tok).stmt}\")")
-      case fExpr.|>(inv) => Newline ++ Single("|>") ++ Space ++ render(inv)
+      case fExpr.|>(inv) => Indent(Newline ++ Single("|>") ++ Space ++ render(inv))
       case fExpr.Call(op, args) =>
         Many(List(render(op), Parenthesised(Many(args.map((expr: fExpr.Arg) => render(expr))), begin = Some("("), end = Some(")"), sep = Some(","))))
       case fExpr.Arg(name, value) => Single(l(name).stmt) ++ Single(":") ++ Space ++ render(value)

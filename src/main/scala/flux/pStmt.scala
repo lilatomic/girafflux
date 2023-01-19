@@ -11,6 +11,8 @@ case class Many(stmts: List[pStmt]) extends pStmt
 
 case class Single(stmt: String) extends pStmt
 
+case class Indent(stmt: pStmt, increase: Int = 1) extends pStmt
+
 sealed trait WhiteSpace extends pStmt
 
 object WhiteSpace {

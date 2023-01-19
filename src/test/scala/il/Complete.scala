@@ -24,6 +24,7 @@ class Complete extends munit.FunSuite {
     } yield rendered
 
     val expected = sections.getOrElse('u', sections('f')).strip()
+//    val expected = sections('f').strip()
 
     // ---
     val obtained = rendered.getOrElse("").strip()
