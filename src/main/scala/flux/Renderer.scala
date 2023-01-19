@@ -33,7 +33,7 @@ object Renderer {
       case _ => l.init :+ (l.last + s)
 
   private def parenthesised(open: String, items: Many, separator: String, close: String): Parenthesised =
-    Parenthesised(items, begin = Some(open), end = Some(close), sep = Some(separator))
+    Parenthesised(items, begin = Some(Single(open)), end = Some(Single(close)), sep = Some(Single(separator)))
 
   def render(expr: fExpr): pStmt =
     expr match
@@ -41,7 +41,7 @@ object Renderer {
       case fExpr.From(bucket) => Single(s"from(bucket: \"${l(bucket.tok).stmt}\")")
       case fExpr.|>(inv) => Indent(Newline ++ Single("|>") ++ Space ++ render(inv))
       case fExpr.Call(op, args) =>
-        Many(List(render(op), Parenthesised(Many(args.map((expr: fExpr.Arg) => render(expr))), begin = Some("("), end = Some(")"), sep = Some(","))))
+        Many(List(render(op), Parenthesised(Many(args.map((expr: fExpr.Arg) => render(expr))), begin = Some(Single("(")), end = Some(Single(")")), sep = Some(Single(",")))))
       case fExpr.Arg(name, value) => Single(l(name).stmt) ++ Single(":") ++ Space ++ render(value)
       case fExpr.Identifier(tok) => l(tok)
       case v: fExpr.Function => printFunction(v)
@@ -51,53 +51,46 @@ object Renderer {
         value match
           case _: fExpr.Identifier => Parenthesised(
             Many(List(render(obj), render(value))),
-            sep = Some("."),
-            begin = None,
-            end = None
+            sep = Some(Single(".")),
           )
-          case _: fLit.Str => Parenthesised(
-            Many(List(render(obj), render(value))),
-            sep = Some("["),
-            begin = None,
-            end = Some("]")
-          )
-
+          case _: fLit.Str =>
+            render(obj) ++ Single("[") ++ render(value) ++ Single("]")
       case lit: fLit => printLit(lit)
       case fExpr.Script(imports, queries) =>
-          Many(imports.map { i => render(i) })
-            ++ Newline
-            ++ Many(queries.map(q => render(q)))
+        Many(imports.map { i => render(i) })
+          ++ Newline
+          ++ Many(queries.map(q => render(q)))
       case fExpr.ModuleImport(module) =>
         Single("import") ++ Space ++ render(module) ++ Newline
       case fExpr.Block(exprs) =>
         Parenthesised(
           Many(exprs.map((expr: fExpr) => render(expr))),
-            sep=Some("\n"), begin=Some("{"), end=Some("}")
+          sep = Some(Newline), begin = Some(Single("{")), end = Some(Single("}"))
         )
       case fExpr.Assign(obj, value) => Parenthesised(
         Many(List(render(obj), render(value))),
-        sep = Some("="),
-        begin = None,
-        end = None
+        sep = Some(Single("=")),
       )
       case fExpr.Return(body) => prependToFirst("return ", render(body))
-      case fExpr.PropertyList(elems) => parenthesised("",
-        Many(elems.map {
-          (k: fExpr.Identifier, v: fExpr) =>
-            Parenthesised(
-              Many(List(render(k), render(v))),
-              sep = Some(": "),
-              begin = None,
-              end = None
-            )
-        }.toList),
-        ", ", "")
+      case fExpr.PropertyList(elems) =>
+        Parenthesised(
+          Many(elems.map {
+            (k: fExpr.Identifier, v: fExpr) =>
+              Parenthesised(
+                Many(List(render(k), render(v))),
+                sep = Some(Single(":") ++ Space),
+              )
+          }.toList),
+          sep = Some(Single(",") ++ Space)
+        )
       case fExpr.WithProperties(identifier, propertyList) =>
         render(identifier) ++ Space ++ Single("with") ++ Space ++ render(propertyList)
   //        coalesceSingles(render(identifier), render(propertyList), sep = " with ")
 
   private def printFunction(v: fExpr.Function) =
-    val argList = Parenthesised(Many(v.params.map(l).map(_.stmt).map{ Single.apply }), begin=Some("("), end = Some(")"), sep=Some(", "))
+    val argList = Parenthesised(Many(v.params.map(l).map(_.stmt).map {
+      Single.apply
+    }), begin = Some(Single("(")), end = Some(Single(")")), sep = Some(Single(",") ++ Space))
     argList ++ Space ++ Single("=>") ++ Space ++ render(v.body)
 
   private def printOp2(op: fExpr.Op2, space: Boolean = true, parens: Boolean = true) =
@@ -116,16 +109,14 @@ object Renderer {
       case fLit.Regex(tok) => Single(s"/${l(tok).stmt}/")
       case fLit.Array(elems) =>
         parenthesised("[", Many(elems.map((expr: fExpr) => render(expr))), ", ", "]")
-      case fLit.Record(body) => Parenthesised(render(body), begin = Some("{"), end = Some("}"))
+      case fLit.Record(body) => Parenthesised(render(body), begin = Some(Single("{")), end = Some(Single("}")))
       case fLit.Dict(elems) => if (elems.isEmpty) {
         Single("[:]")
       } else {
         parenthesised("[", Many(elems.map { (k, v) =>
           Parenthesised(
             Many(List(render(k), render(v))),
-            sep = Some(":"),
-            begin = None,
-            end = None
+            sep = Some(Single(":")),
           )
         }.toList), separator = ",", close = "]")
       }

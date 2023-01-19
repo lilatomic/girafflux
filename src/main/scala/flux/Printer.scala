@@ -26,15 +26,18 @@ case class Printer(lineLength: Int = 120, indent: String = "\t") {
         val rs = stmts match
           case Many(stmts) => stmts.map(p(_, ctx))
           case _ => List(p(stmts, ctx))
-        val joined = rs.map(_.s).mkString(sep.getOrElse(""))
-        Print(begin.getOrElse("") + joined + end.getOrElse(""))
+        val joined = rs.map(_.s).mkString(printOption(sep, ctx).s)
+        Print(printOption(begin, ctx).s + joined + printOption(end, ctx).s)
       case s: WhiteSpace =>
         s match
           case WhiteSpace.Newline => Print("\n" + indent * ctx.indent, singleLine = false)
           case WhiteSpace.Space => Print(" ")
       case Indent(stmt, increase) => p(stmt, ctx.copy(indent = ctx.indent + increase))
 
-  private def renderOne(p: Single): Print = {
-    Print(p.stmt)
+  private def renderOne(s: Single): Print = {
+    Print(s.stmt)
   }
+
+  private def printOption(s: Option[pStmt], ctx: PrintContext): Print =
+    s.map(p(_, ctx)).getOrElse(Print(""))
 }

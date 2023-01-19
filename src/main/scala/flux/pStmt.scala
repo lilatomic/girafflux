@@ -26,4 +26,4 @@ object WhiteSpace {
       case (Space, Space) => Space
 }
 
-case class Parenthesised(stmts: pStmt, sep: Option[String]=None, begin: Option[String]=None, end: Option[String]=None) extends pStmt {}
+case class Parenthesised(stmts: pStmt, sep: Option[pStmt]=None, begin: Option[pStmt]=None, end: Option[pStmt]=None) extends pStmt {}
