@@ -27,7 +27,30 @@ case class PrintContext(indent: Int = 0)
 
 case class Printer(lineLength: Int = 120, indent: String = "\t") {
 
-  def print(pStmt: pStmt): Print = p(pStmt, PrintContext())
+  def print(pStmt: pStmt): Print = p(simplify(pStmt, PrintContext()), PrintContext())
+
+//  private def combineSimple(stmts: List[pStmt])
+
+  def simplify(pStmt: pStmt, ctx: PrintContext): pStmt =
+    pStmt match
+      case Many(stmts) =>
+        val simplified = stmts.map(simplify(_, ctx))
+        Many(simplified)
+
+      case Single(stmt) => Single(stmt)
+      case Indent(stmt, increase) => Indent(simplify(stmt, ctx), increase)
+      case space: WhiteSpace => space
+      case Parenthesised(stmts, sep, begin, end) =>
+        val separated = stmts match
+          case Many(ss) => sep.map(intersperse(ss, _)).getOrElse(ss)
+          case _ => List(stmts)
+        val simplified = Many(separated.map(simplify(_, ctx)))
+        val joined = p(simplified, ctx)
+        if (shouldSplit(joined)) {
+          sOption(begin, ctx) ++ Indent(WhiteSpace.Newline ++ simplified) ++ WhiteSpace.Newline ++ sOption(end, ctx)
+        } else {
+          sOption(begin, ctx) ++ simplified ++ sOption(end, ctx)
+        }
 
   def p(pStmt: pStmt, ctx: PrintContext): Print =
     pStmt match
@@ -51,10 +74,7 @@ case class Printer(lineLength: Int = 120, indent: String = "\t") {
             sep.map(intersperse(stmts, _)).getOrElse(stmts)
           case _ => List(stmts)
         val joined = rs.map(p(_, ctx))
-        if (shouldSplit(joined))
-          printOption(begin, ctx) ++ p(Indent(stmts) ++ WhiteSpace.Newline, ctx) ++ printOption(end, ctx)
-        else
-          printOption(begin, ctx) ++ Print.combine(joined) ++ printOption(end, ctx)
+        printOption(begin, ctx) ++ Print.combine(joined) ++ printOption(end, ctx)
 
       case s: WhiteSpace =>
         s match
@@ -69,6 +89,9 @@ case class Printer(lineLength: Int = 120, indent: String = "\t") {
   private def printOption(s: Option[pStmt], ctx: PrintContext): Print =
     s.map(p(_, ctx)).getOrElse(Print(""))
 
+  private def sOption(s: Option[pStmt], ctx: PrintContext): pStmt =
+    s.map(simplify(_, ctx)).getOrElse(Single(""))
+
   private def shouldSplit(ps: List[Print]): Boolean =
     ps match
       case Nil => false
@@ -77,6 +100,9 @@ case class Printer(lineLength: Int = 120, indent: String = "\t") {
       case _ :: _ =>
 //        ps.exists(!_.singleLine) | (ps.map(_.s).map(_.length).sum >= lineLength)
         (ps.map(_.s).map(_.length).sum >= lineLength)
+
+  private def shouldSplit(p: Print): Boolean =
+    p.s.length >= lineLength
 
   private def isMultiline(ps: List[Print]): Boolean =
     ps.exists(!_.singleLine)

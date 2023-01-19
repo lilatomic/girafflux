@@ -15,7 +15,7 @@ class Complete extends munit.FunSuite {
       gTokens <- GLexer.lex(sections('g'))
       gAst <- {
         val o = GParser.parse(gTokens)
-        pprint.pprintln(o)
+//        pprint.pprintln(o)
         o
       }
       fAst <- Transformer.transformProgram(gAst)
@@ -28,7 +28,7 @@ class Complete extends munit.FunSuite {
 
     // ---
     val obtained = rendered.getOrElse("").strip()
-    pprint.pprintln(obtained)
+//    pprint.pprintln(obtained)
     (obtained, expected)
   }
 
