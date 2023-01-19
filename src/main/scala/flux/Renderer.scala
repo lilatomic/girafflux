@@ -35,43 +35,43 @@ object Renderer {
   private def parenthesised(open: String, items: Many, separator: String, close: String): Parenthesised =
     Parenthesised(items, begin = Some(open), end = Some(close), sep = Some(separator))
 
-  def render(expr: fExpr, indent: Int = 0): pStmt =
+  def render(expr: fExpr): pStmt =
     expr match
-      case fExpr.Query(from, ops) => render(from) ++ Many(ops.map(render(_)))
+      case fExpr.Query(from, ops) => render(from) ++ Many(ops.map((expr: fExpr.|>) => render(expr)))
       case fExpr.From(bucket) => Single(s"from(bucket: \"${l(bucket.tok).stmt}\")")
       case fExpr.|>(inv) => Newline ++ Single("|>") ++ Space ++ render(inv)
       case fExpr.Call(op, args) =>
-        Many(List(render(op), Parenthesised(Many(args.map(render(_))), begin = Some("("), end = Some(")"), sep = Some(","))))
-      case fExpr.Arg(name, value) => Single(l(name).stmt) ++ Single(":") ++ Space ++ render(value, indent)
+        Many(List(render(op), Parenthesised(Many(args.map((expr: fExpr.Arg) => render(expr))), begin = Some("("), end = Some(")"), sep = Some(","))))
+      case fExpr.Arg(name, value) => Single(l(name).stmt) ++ Single(":") ++ Space ++ render(value)
       case fExpr.Identifier(tok) => l(tok)
-      case v: fExpr.Function => printFunction(v, indent)
-      case fExpr.Op1(op, a0) => l(op) ++ render(a0, indent)
-      case v: fExpr.Op2 => printOp2(v, indent)
+      case v: fExpr.Function => printFunction(v)
+      case fExpr.Op1(op, a0) => l(op) ++ render(a0)
+      case v: fExpr.Op2 => printOp2(v)
       case fExpr.Member(obj, value) =>
         value match
           case _: fExpr.Identifier => Parenthesised(
-            Many(List(render(obj, indent), render(value, indent))),
+            Many(List(render(obj), render(value))),
             sep = Some("."),
             begin = None,
             end = None
           )
           case _: fLit.Str => Parenthesised(
-            Many(List(render(obj, indent), render(value, indent))),
+            Many(List(render(obj), render(value))),
             sep = Some("["),
             begin = None,
             end = Some("]")
           )
 
-      case lit: fLit => printLit(lit, indent)
+      case lit: fLit => printLit(lit)
       case fExpr.Script(imports, queries) =>
-          Many(imports.map { i => render(i, indent) })
+          Many(imports.map { i => render(i) })
             ++ Newline
-            ++ Many(queries.map(q => render(q, indent)))
+            ++ Many(queries.map(q => render(q)))
       case fExpr.ModuleImport(module) =>
         Single("import") ++ Space ++ render(module) ++ Newline
       case fExpr.Block(exprs) =>
         Parenthesised(
-          Many(exprs.map(render(_, indent))),
+          Many(exprs.map((expr: fExpr) => render(expr))),
             sep=Some("\n"), begin=Some("{"), end=Some("}")
         )
       case fExpr.Assign(obj, value) => Parenthesised(
@@ -96,16 +96,16 @@ object Renderer {
         render(identifier) ++ Space ++ Single("with") ++ Space ++ render(propertyList)
   //        coalesceSingles(render(identifier), render(propertyList), sep = " with ")
 
-  private def printFunction(v: fExpr.Function, indent: Int): pStmt =
+  private def printFunction(v: fExpr.Function) =
     val argList = Parenthesised(Many(v.params.map(l).map(_.stmt).map{ Single.apply }), begin=Some("("), end = Some(")"), sep=Some(", "))
-    argList ++ Space ++ Single("=>") ++ Space ++ render(v.body, indent)
+    argList ++ Space ++ Single("=>") ++ Space ++ render(v.body)
 
-  private def printOp2(op: fExpr.Op2, indent: Int, space: Boolean = true, parens: Boolean = true): pStmt =
+  private def printOp2(op: fExpr.Op2, space: Boolean = true, parens: Boolean = true) =
     val printedOp = if (space) Space ++ l(op.op) ++ Space else l(op.op)
-    val body = Many(List(render(op.a0, indent), printedOp, render(op.a1, indent)))
+    val body = Many(List(render(op.a0), printedOp, render(op.a1)))
     if (parens) Many(List(Single("("), body, Single(")"))) else body
 
-  private def printLit(lit: fLit, indent: Int): pStmt =
+  private def printLit(lit: fLit) =
     lit match
       case fLit.Boolean(tok) => l(tok)
       case fLit.Integer(tok) => l(tok)
@@ -115,7 +115,7 @@ object Renderer {
       case fLit.Str(tok) => Single(s"\"${l(tok).stmt}\"")
       case fLit.Regex(tok) => Single(s"/${l(tok).stmt}/")
       case fLit.Array(elems) =>
-        parenthesised("[", Many(elems.map(render(_, indent))), ", ", "]")
+        parenthesised("[", Many(elems.map((expr: fExpr) => render(expr))), ", ", "]")
       case fLit.Record(body) => Parenthesised(render(body), begin = Some("{"), end = Some("}"))
       case fLit.Dict(elems) => if (elems.isEmpty) {
         Single("[:]")

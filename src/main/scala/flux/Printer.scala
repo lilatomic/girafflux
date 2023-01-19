@@ -2,11 +2,16 @@ package flux
 
 case class Print(s: String, singleLine: Boolean = true)
 
+case class PrintContext()
+
 case class Printer(lineLength: Int = 120) {
-  def print(pStmt: pStmt): Print =
+
+  def print(pStmt: pStmt): Print = p(pStmt, PrintContext())
+
+  def p(pStmt: pStmt, ctx: PrintContext): Print =
     pStmt match
       case Many(stmts) =>
-        val renders = stmts.map(print)
+        val renders = stmts.map(p(_, ctx))
         renders match
           case Nil => Print("")
           case one :: Nil => one
@@ -19,8 +24,8 @@ case class Printer(lineLength: Int = 120) {
       case v: Single => renderOne(v)
       case Parenthesised(stmts, sep, begin, end) =>
         val rs = stmts match
-          case Many(stmts) => stmts.map(print)
-          case _ => List(print(stmts))
+          case Many(stmts) => stmts.map(p(_, ctx))
+          case _ => List(p(stmts, ctx))
         val joined = rs.map(_.s).mkString(sep.getOrElse(""))
         Print(begin.getOrElse("") + joined + end.getOrElse(""))
       case s: WhiteSpace =>
