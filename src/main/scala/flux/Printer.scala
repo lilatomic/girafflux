@@ -1,10 +1,26 @@
 package flux
 
+import scala.annotation.tailrec
+
 case class Print(s: String, singleLine: Boolean = true){
   def ++(o: Print): Print =
     Print(s + o.s, singleLine & o.singleLine)
 }
 
+object Print {
+  @tailrec
+  def combine(ps: List[Print], acc: Print = Print("")): Print =
+    ps match
+      case ::(head, next) => combine(next, acc ++ head)
+      case Nil => acc
+}
+
+
+private def intersperse(stmts: List[pStmt], sep: pStmt): List[pStmt] =
+  stmts match
+    case Nil => stmts
+    case _ :: Nil => stmts
+    case x :: xs => (x ++ sep) :: intersperse(xs, sep)
 
 
 case class PrintContext(indent: Int = 0)
@@ -21,18 +37,25 @@ case class Printer(lineLength: Int = 120, indent: String = "\t") {
           case Nil => Print("")
           case one :: Nil => one
           case _ =>
-            if (renders.map(_.s).map(_.length).sum < lineLength) {
-              renders.reduceLeft(_ ++ _)
+            if (shouldSplit(renders) & !isMultiline(renders)) {
+              Print(
+                stmts.map(WhiteSpace.Newline ++ _).map(p(_, ctx)).map(_.s).mkString(""), singleLine = false
+              )
             } else {
-              Print(renders.map(_.s).mkString(""), singleLine = false)
+              Print.combine(renders)
             }
       case v: Single => renderOne(v)
       case Parenthesised(stmts, sep, begin, end) =>
         val rs = stmts match
-          case Many(stmts) => stmts.map(p(_, ctx))
-          case _ => List(p(stmts, ctx))
-        val joined = rs.map(_.s).mkString(printOption(sep, ctx).s)
-        Print(printOption(begin, ctx).s + joined + printOption(end, ctx).s)
+          case Many(stmts) =>
+            sep.map(intersperse(stmts, _)).getOrElse(stmts)
+          case _ => List(stmts)
+        val joined = rs.map(p(_, ctx))
+        if (shouldSplit(joined))
+          printOption(begin, ctx) ++ p(Indent(stmts) ++ WhiteSpace.Newline, ctx) ++ printOption(end, ctx)
+        else
+          printOption(begin, ctx) ++ Print.combine(joined) ++ printOption(end, ctx)
+
       case s: WhiteSpace =>
         s match
           case WhiteSpace.Newline => Print("\n" + indent * ctx.indent, singleLine = false)
@@ -45,4 +68,16 @@ case class Printer(lineLength: Int = 120, indent: String = "\t") {
 
   private def printOption(s: Option[pStmt], ctx: PrintContext): Print =
     s.map(p(_, ctx)).getOrElse(Print(""))
+
+  private def shouldSplit(ps: List[Print]): Boolean =
+    ps match
+      case Nil => false
+//      case x :: Nil => !x.singleLine
+      case x :: Nil => false
+      case _ :: _ =>
+//        ps.exists(!_.singleLine) | (ps.map(_.s).map(_.length).sum >= lineLength)
+        (ps.map(_.s).map(_.length).sum >= lineLength)
+
+  private def isMultiline(ps: List[Print]): Boolean =
+    ps.exists(!_.singleLine)
 }

@@ -4,7 +4,19 @@ import scala.annotation.targetName
 
 sealed trait pStmt {
   @targetName("concat")
-  def ++(o: pStmt): Many = Many(List(this, o))
+  def ++(o: pStmt): Many =
+    val r = this match
+      case v: Many => v.stmts
+      case _ => List(this)
+    val l = o match
+      case v: Many => v.stmts
+      case _ => List(o)
+
+    Many(r ++ l)
+
+  @targetName("combine")
+  def +++(o: pStmt): Many =
+    Many(List(this, o))
 }
 
 case class Many(stmts: List[pStmt]) extends pStmt
