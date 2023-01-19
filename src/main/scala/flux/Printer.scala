@@ -1,6 +1,11 @@
 package flux
 
-case class Print(s: String, singleLine: Boolean = true)
+case class Print(s: String, singleLine: Boolean = true){
+  def ++(o: Print): Print =
+    Print(s + o.s, singleLine & o.singleLine)
+}
+
+
 
 case class PrintContext(indent: Int = 0)
 
@@ -17,7 +22,7 @@ case class Printer(lineLength: Int = 120, indent: String = "\t") {
           case one :: Nil => one
           case _ =>
             if (renders.map(_.s).map(_.length).sum < lineLength) {
-              Print(renders.map(_.s).mkString(""))
+              renders.reduceLeft(_ ++ _)
             } else {
               Print(renders.map(_.s).mkString(""), singleLine = false)
             }
