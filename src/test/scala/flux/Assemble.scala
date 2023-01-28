@@ -28,7 +28,7 @@ class Assemble extends munit.FunSuite {
     val printed = Printer().print(rendered).s
     assertEquals(printed,
       """from(bucket: "netdatatsdb/autogen")
-        |> range(start: -1h)""")
+	|> range(start: -1h)""")
   }
   test("assemble - inline lambda") {
     val expr = Query(
@@ -51,11 +51,8 @@ class Assemble extends munit.FunSuite {
     val printed = Printer().print(rendered).s
     assertEquals(printed,
       """from(bucket: "netdatatsdb/autogen")
-|> range(start: -1h)
-|> filter(
-fn: (r) =>
-r["_measurement"] == "vpsmetrics"
-)""")
+	|> range(start: -1h)
+	|> filter(fn: (r) => (r["_measurement"] == "vpsmetrics"))""")
   }
 
   test("assemble - with helpers") {
@@ -78,16 +75,15 @@ r["_measurement"] == "vpsmetrics"
     val printed = Printer().print(rendered).s
     assertEquals(printed,
       """from(bucket: "netdatatsdb/autogen")
-|> range(start: -1h)
-|> filter(
-fn: (r) =>
-r["_measurement"] == "cpsmetrics" and "host" == "vpsfrsqlpac1" and r["_field"] == "pcpu" and r["_value"] > 80
-)
-|> sort(
-columns: ["_value"],
-desc: true,
-)
-|> limit(n: 10)
-|> yield()""")
+	|> range(start: -1h)
+	|> filter(
+		fn: (r) => (
+		(r["_measurement"] == "cpsmetrics")
+		 and
+		(("host" == "vpsfrsqlpac1") and ((r["_field"] == "pcpu") and (r["_value"] > 80))))
+	)
+	|> sort(columns: ["_value"], desc: true)
+	|> limit(n: 10)
+	|> yield()""")
   }
 }

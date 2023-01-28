@@ -2,7 +2,7 @@ package il
 
 import flux.{Func, Ops, fExpr, fLit, fToken, mkOp2}
 import giraffe.gExpr.{gBuiltin, gStage}
-import giraffe.{gExpr, gToken}
+import giraffe.{gExpr, gToken, gTransformError}
 
 import scala.annotation.tailrec
 import scala.util.parsing.combinator.Parsers
@@ -109,7 +109,13 @@ object Transformer {
       case v: gExpr.Block => g2fBlocklike(reduceBlock(v))
       case v: gExpr.ImplicitRef => resolveImplicitRef(v)
 
-  private def g2f(g: gExpr.Call): fExpr.Call = fExpr.Call(g2fBlocklike(g.callee), g.args.map(g2f))
+  def transformKwArgFunction(g: gExpr.Call): fExpr.Call = {
+    g.args match
+      case a: gExpr.ArgsKeyword => fExpr.Call(g2fBlocklike(g.callee), g2f(a))
+      case gExpr.ArgsPositional(args) => throw gTransformError(s"Flux doesn't support calling functions with positional arguments. This error was encountered with a call of ${g.callee}")
+  }
+
+  private def g2f(g: gExpr.Call): fExpr.Call = transformKwArgFunction(g)
 
   private def g2fCall(g: gExpr.Call): fExpr =
     @tailrec
@@ -124,13 +130,16 @@ object Transformer {
         head match
           case gExpr.Id(gToken.Id("math")) => transformMathlike(memberChain, g)
           case gExpr.Id(gToken.Id("cmp")) => transformCmplike(memberChain, g)
-          case _ => fExpr.Call(g2fBlocklike(g.callee), g.args.map(g2f))
-      case _ => fExpr.Call(g2fBlocklike(g.callee), g.args.map(g2f))
+          case _ => transformKwArgFunction(g)
+      case _ => transformKwArgFunction(g)
 
   private def mkOp2(s: mkOp2, g: gExpr.Call) =
+    val args = g.args match
+      case gExpr.ArgsKeyword(args) => args.map(_.value)
+      case gExpr.ArgsPositional(args) => args.map(_.value)
     s(
-      g2fBlocklike(g.args(0).value),
-      g2fBlocklike(g.args(1).value)
+      g2fBlocklike(args(0)),
+      g2fBlocklike(args(1))
     )
 
   private def transformMathlike(chain: List[gExpr.Id | gExpr.gLit.Str], g: gExpr.Call): fExpr =
@@ -163,7 +172,15 @@ object Transformer {
       case "regex_ne" => Ops.regex_ne
     mkOp2(op, g)
 
-  private def g2f(g: gExpr.Arg): fExpr.Arg = fExpr.Arg(fToken(g.name.tok.s), g2fBlocklike(g.value))
+  private def g2f(g: gExpr.ArgKeyword): fExpr.Arg = fExpr.Arg(fToken(g.name.tok.s), g2fBlocklike(g.value))
+
+  private def g2f(g: gExpr.ArgPositional): fExpr = g2fBlocklike(g.value)
+
+  private def g2f(g: gExpr.ArgsKeyword): List[fExpr.Arg] =
+    g.args.map(g2f)
+
+  private def g2f(g: gExpr.ArgsPositional): List[fExpr] =
+    g.args.map(g2f)
 
   private def g2f(g: gExpr.blocklike | gExpr.gBuiltin.Now.type): fExpr =
     g match

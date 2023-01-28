@@ -3,7 +3,7 @@ from "example-bucket"
 |@ start -1h
 |$ "cpu"
 |% "usage_system"
-|? cmp.eq(a: _.cpu, b: "cpu-total")
+|? cmp.eq(_.cpu, "cpu-total")
 ---f
 from(bucket: "example-bucket")
 	|> range(start: -1h)

@@ -40,18 +40,18 @@ class Parser extends munit.FunSuite {
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
-  test("common-queries/operate-on-columns/#calculate-a-new-column"){
+  test("common-queries/operate-on-columns/#calculate-a-new-column") {
     val expr = WorkFlow.run("""from noaa |$ "average_temperature" |@ start "-30d" |. celsius mathdiv(a0: mathmul(a0: mathsub(a0: _, a1: 32.0), a1: 5.0), a1: 9.0)""")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
-  test("streamMap with call"){
+  test("streamMap with call") {
     val expr = WorkFlow.run("from a | q ( v: v )")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
 
-  test("map call with no identifier"){
+  test("map call with no identifier") {
     val expr = WorkFlow.run("from a |._ q ( v: v )")
     pprint.pprintln(expr)
     assert(expr.isRight)
@@ -69,7 +69,7 @@ class Parser extends munit.FunSuite {
     assert(expr.isRight)
   }
 
-  test("literals")  {
+  test("literals") {
     val expr = WorkFlow.run("from a |._ 12")
     pprint.pprintln(expr)
     assert(expr.isRight)
@@ -84,7 +84,7 @@ class Parser extends munit.FunSuite {
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
-  test("literals - timedelta"){
+  test("literals - timedelta") {
     val expr = WorkFlow.run("""from a |@ start 30d """)
     pprint.pprintln(expr)
     assert(expr.isRight)
@@ -110,12 +110,12 @@ class Parser extends munit.FunSuite {
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
-  test("record"){
+  test("record") {
     val expr = WorkFlow.run("""from a |. q { w: 1 , e: 2 } """)
     pprint.pprintln(expr)
     assert(expr.isRight)
   }
-  test("map many adding"){
+  test("map many adding") {
     val expr = WorkFlow.run("""from a |. { w: 1 , e: 2 } """)
     pprint.pprintln(expr)
     assert(expr.isRight)
@@ -168,6 +168,11 @@ class Parser extends munit.FunSuite {
   }
   test("index chain") {
     val expr = WorkFlow.run("""from a |._ z.x.c.v.b """)
+    pprint.pprintln(expr)
+    assert(expr.isRight)
+  }
+  test("call with positional arguments") {
+    val expr = WorkFlow.run("""from a |._ math.mul ( v, 32 )""")
     pprint.pprintln(expr)
     assert(expr.isRight)
   }

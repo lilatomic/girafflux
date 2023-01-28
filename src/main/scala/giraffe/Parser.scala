@@ -36,7 +36,7 @@ object GParser extends Parsers {
   }
 
   private def query: Parser[gExpr.Query] = positioned {
-    (gToken.From() ~ (identifier| litStr) ~ stages) ^^ { case _ ~ bucket ~ stages =>
+    (gToken.From() ~ (identifier| litStr) ~ rep1(stage)) ^^ { case _ ~ bucket ~ stages =>
       val bucketName = bucket match
         case v: gExpr.Id => gExpr.gLit.Str(gToken.LitStr(v.tok.s))
         case v: gExpr.gLit.Str => v
@@ -44,7 +44,7 @@ object GParser extends Parsers {
     }
   }
 
-  private def blockMany = {
+  private def blockMany = positioned {
     gToken.BraceL() ~> rep(blocklike) <~ gToken.BraceR() ^^ (exprs => gExpr.Block(exprs))
   }
 
@@ -53,16 +53,27 @@ object GParser extends Parsers {
   }
 
   private def call: Parser[gExpr.Call] = positioned {
-    (member ~ gToken.ParenL() ~ repsep(arg, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(i, args) }
-      | (identifier ~ gToken.ParenL() ~ repsep(arg, gToken.Comma()) ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(i, args) }
+    (member ~ gToken.ParenL() ~ args ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(i, args) }
+      | (identifier ~ gToken.ParenL() ~ args ~ gToken.ParenR()) ^^ { case i ~ _ ~ args ~ _ => gExpr.Call(i, args) }
   }
 
-  private def arg: Parser[gExpr.Arg] = {
-    (identifier ~ gToken.Colon() ~ blocklike) ^^ { case i ~ _ ~ v => gExpr.Arg(i, v) }
-      | (identifier ~ gToken.Colon() ~ implicitRef) ^^ { case i ~ _ ~ v => gExpr.Arg(i, v) }
+  private def args: Parser[gExpr.Args] = positioned {
+    rep1sep(argKeyword, gToken.Comma()) ^^ { case args => gExpr.ArgsKeyword(args)}
+    | rep1sep(argPositional, gToken.Comma()) ^^ { case args => gExpr.ArgsPositional(args)}
+    | success(List()) ^^^ gExpr.ArgsKeyword(List())
   }
 
-  private def member: Parser[gExpr.Member] = {
+  private def argKeyword: Parser[gExpr.ArgKeyword] = positioned {
+    (identifier ~ gToken.Colon() ~ blocklike) ^^ { case i ~ _ ~ v => gExpr.ArgKeyword(i, v) }
+      | (identifier ~ gToken.Colon() ~ implicitRef) ^^ { case i ~ _ ~ v => gExpr.ArgKeyword(i, v) }
+  }
+
+  private def argPositional: Parser[gExpr.ArgPositional] = positioned {
+    blocklike ^^ (v => gExpr.ArgPositional(v))
+//      | implicitRef ^^ (i => gExpr.ArgPositional(i))
+  }
+
+  private def member: Parser[gExpr.Member] = positioned {
     val chainFirst = implicitRef ~ gToken.Period() ~ identifier ^^ { case l ~ _ ~ r => gExpr.Member(l, r) }
       | identifier ~ gToken.Period() ~ identifier ^^ { case l ~ _ ~ r => gExpr.Member(l, r) }
 
@@ -71,10 +82,6 @@ object GParser extends Parsers {
       identifier,
       gToken.Period() ^^^ { (l: gExpr.assignable, r: gExpr.Id) => gExpr.Member(l, r) }
     )
-  }
-
-  private def stages: Parser[List[gExpr.gStage]] = {
-    rep1(stage)
   }
 
   private def stage: Parser[gExpr.gStage] = positioned {
@@ -144,7 +151,7 @@ object GParser extends Parsers {
     accept("identifier", { case id: gToken.Id => gExpr.Id(id) })
   }
 
-  private def litStr = {
+  private def litStr = positioned {
     accept("string literal", { case s: gToken.LitStr => gExpr.gLit.Str(s) })
   }
 

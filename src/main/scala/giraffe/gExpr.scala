@@ -27,9 +27,19 @@ object gExpr {
 
   case class gFunction(args: List[Id], body: gExpr) extends gExpr
 
-  case class Call(callee: blocklike, args: List[Arg]) extends blocklike
+  case class Call(callee: blocklike, args: Args) extends blocklike
 
-  case class Arg(name: Id, value: blocklike) extends gExpr
+  sealed trait Args extends gExpr
+
+  case class ArgsKeyword(args: List[ArgKeyword]) extends Args
+
+  case class ArgsPositional(args: List[ArgPositional]) extends Args
+
+  sealed trait Arg extends gExpr
+
+  case class ArgKeyword(name: Id, value: blocklike) extends Arg
+
+  case class ArgPositional(value: blocklike) extends Arg
 
   case class Member(obj: assignable, value: Id | gLit.Str) extends blocklike
 
