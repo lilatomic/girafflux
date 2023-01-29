@@ -33,15 +33,15 @@ from telegraf
 Girafflux is basically syntactic frosting on top of flux.
 The most obvious part of frosting is the use of concise punctiation-based operators
 
-| Girafflux  | Description         |
-|------------|---------------------|
-| `&#124;`   | Operation           |
-| `&#124;@`  | Range               |
-| `&#124;$`  | Filter _measurement |
-| `&#124;%`  | Filter _field       |
-| `&#124;?`  | Filter              |
-| `&#124;.`  | Assign              |
-| `&#124;._` | Assign to _value    |
+| Girafflux | Description         |
+|-----------|---------------------|
+| &#124;    | Operation           |
+| &#124;@   | Range               |
+| &#124;$   | Filter _measurement |
+| &#124;%   | Filter _field       |
+| &#124;?   | Filter              |
+| &#124;.   | Assign              |
+| &#124;._  | Assign to _value    |
 
 Girafflux doesn't implement arithmetic and comparison as builtin infix operators, which is a little annoying. It makes
 the parser a lot easier to implement, and I didn't use them that much. Math is implemented in the `math` package:
