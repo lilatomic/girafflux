@@ -24,7 +24,7 @@ object GLexer extends RegexParsers {
 
   private def literal: Parser[Lit] = {
     val litStr = "\"(?:[^\"\\\\]|\\\\.)*\"".r ^^ { s => LitStr(s.substring(1, s.length - 1)) }
-    val litFloat = "-?\\p{Nd}+.\\p{Nd}*".r ^^ {s => LitFloat(s)}
+    val litFloat = "-?\\p{Nd}+\\.\\p{Nd}*".r ^^ {s => LitFloat(s)}
     val litInt = "-?\\p{Nd}+".r ^^ {s => LitInt(s)}
     val litDuration = litFloat ~ litTimeUnit ^^ { case v ~ u => LitDuration(v, u)} | litInt ~ litTimeUnit ^^ { case v ~ u => LitDuration(v, u)}
     litDateTime | litDuration | litStr | litFloat | litInt
